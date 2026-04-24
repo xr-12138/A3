@@ -26,4 +26,4 @@ def test_multi_agent():
     print("\n🎉 所有智能体测试通过！")
 
 if __name__ == "__main__":
-    test_multi_agent()
+    test_multi_agent()   
