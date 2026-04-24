@@ -16,7 +16,8 @@ from typing import Optional
 
 import streamlit as st
 
-from src.frontend.clients import MockClient, BaseAIClient
+from src.api.mock_client import MockClient
+from src.api.base import BaseAIClient
 from src.core.resource_generator import ResourceGenerator
 
 # 项目根目录（固定为要求路径）
@@ -51,7 +52,7 @@ def render_profile_page(ai: BaseAIClient):
     if st.button("发送", key="send_profile") and user_input:
         st.session_state.conv.append({"role": "user", "text": user_input})
         with st.spinner("正在生成画像..."):
-            resp = ai.generate(user_input, mode="profile")
+            resp = ai.generate_text(user_input)
             try:
                 profile = json.loads(resp)
             except Exception:
@@ -82,9 +83,7 @@ def render_resource_page(ai: BaseAIClient):
             time.sleep(0.15)
             progress.progress((i + 1) * 20)
 
-        # 调用 AI
-        resp = ai.generate("generate resource", resource_type=rtype, topic=course, knowledge_point=knowledge_point)
-
+        # 调用 AI（根据资源类型选用统一接口）
         if rtype == "mindmap":
             # 尝试调用 ResourceGenerator 渲染 PNG（若 graphviz 可用）
             try:
@@ -95,21 +94,28 @@ def render_resource_page(ai: BaseAIClient):
                 st.image(mindmap_path)
             except Exception:
                 st.warning("Graphviz 不可用，展示为结构化文本。")
+                # fallback: ask client for mindmap structure
                 try:
-                    tree = json.loads(resp)
+                    tree = ai.generate_mindmap(course)
                     st.json(tree)
                 except Exception:
-                    st.text(resp)
+                    st.text("无法生成思维导图结构")
         elif rtype == "document":
             # 保存并预览 Markdown
+            resp = ai.generate_text(f"document: {course} - {knowledge_point}")
             out = GENERATED_DIR / f"{knowledge_point}.md"
             out.write_text(resp, encoding="utf-8")
             st.markdown(resp)
             st.success(f"文档已保存：{out}")
         elif rtype == "question_bank":
-            # resp 为 JSON 列表
+            # 请求题库（返回 list 或 JSON 可序列化对象）
+            qobj = ai.generate_questions(knowledge_point, num=5)
             try:
-                qlist = json.loads(resp)
+                # 如果返回字符串，尝试解析为 JSON
+                if isinstance(qobj, str):
+                    qlist = json.loads(qobj)
+                else:
+                    qlist = qobj
                 st.write("题库预览：")
                 for q in qlist:
                     st.markdown(f"- **{q.get('q')}**  答案：{q.get('a')}")
@@ -117,13 +123,15 @@ def render_resource_page(ai: BaseAIClient):
                 out.write_text(json.dumps(qlist, ensure_ascii=False, indent=2), encoding="utf-8")
                 st.success(f"题库已保存：{out}")
             except Exception:
-                st.text(resp)
+                st.text(str(qobj))
         elif rtype == "code":
+            code = ai.generate_code(knowledge_point, language="python")
             out = GENERATED_DIR / f"{knowledge_point}_example.py"
-            out.write_text(resp, encoding="utf-8")
-            st.code(resp, language="python")
+            out.write_text(code, encoding="utf-8")
+            st.code(code, language="python")
             st.success(f"代码示例已保存：{out}")
         elif rtype == "video_script":
+            resp = ai.generate_text(f"video_script: {course} - {knowledge_point}")
             out = GENERATED_DIR / f"{knowledge_point}_script.md"
             out.write_text(resp, encoding="utf-8")
             st.markdown(resp)
@@ -172,7 +180,7 @@ def render_tutor_page(ai: BaseAIClient):
         with placeholder.container():
             st.markdown("**AI 正在生成回复...**")
         # 模拟流式输出
-        resp = ai.generate(q, mode="answer")
+        resp = ai.generate_text(q)
         out_box = st.empty()
         text_so_far = ""
         for chunk in resp.split("\n"):
