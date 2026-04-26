@@ -55,3 +55,29 @@ class MultiAgentScheduler:
             "tutoring": tutoring,
             "evaluation": evaluation,
         }
+
+    def execute_task(self, task_name: str, payload: Any = None) -> Any:
+        """执行指定任务并返回结果"""
+        try:
+            if task_name == "profile":
+                if not payload:
+                    return {"error": "No input provided for profile task"}
+                return self.profile_agent.run(payload)
+            elif task_name == "resource":
+                if not payload:
+                    return {"error": "No input provided for resource task"}
+                # 提取必要参数
+                topic = payload.get("kp", payload.get("knowledge_point", "人工智能"))
+                return self.resource_agent.run(topic)
+            elif task_name == "path":
+                if not payload:
+                    return {"error": "No profile provided for path task"}
+                return self.path_agent.run(payload)
+            elif task_name == "tutoring":
+                if not payload:
+                    return {"error": "No question provided for tutoring task"}
+                return self.tutoring_agent.run(payload)
+            else:
+                return {"error": f"Unknown task type: {task_name}"}
+        except Exception as e:
+            return {"error": f"Task execution failed: {str(e)}"}
