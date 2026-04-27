@@ -228,8 +228,12 @@ def render_tutor_page():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    q = st.text_input("提问：", key="tutor_input")
-    if st.button("提问", key="ask_button") and q:
+    # 使用表单实现按回车键发送
+    with st.form(key="tutor_form"):
+        q = st.text_input("提问：", key="tutor_input")
+        submit_button = st.form_submit_button(label="提问")
+
+    if submit_button and q:
         st.session_state.chat_history.append({"role": "user", "text": q})
         with st.spinner("AI 正在生成回复..."):
             try:
@@ -241,11 +245,20 @@ def render_tutor_page():
 
     if st.session_state.chat_history:
         st.subheader("对话历史")
+        # 使用容器和卡片样式显示对话历史
         for msg in st.session_state.chat_history[::-1]:
             if msg["role"] == "user":
-                st.markdown(f"**学生：** {msg['text']}")
+                with st.container():
+                    st.markdown("""<div style="background-color: #f0f8ff; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                        <p style="font-weight: bold; margin-bottom: 5px;">学生：</p>
+                        <p style="margin-left: 20px;">{}</p>
+                    </div>""".format(msg['text']), unsafe_allow_html=True)
             else:
-                st.markdown(f"**AI：** {msg['text']}")
+                with st.container():
+                    st.markdown("""<div style="background-color: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                        <p style="font-weight: bold; margin-bottom: 5px;">AI：</p>
+                        <div style="margin-left: 20px;">{}</div>
+                    </div>""".format(msg['text']), unsafe_allow_html=True)
 
 
 
