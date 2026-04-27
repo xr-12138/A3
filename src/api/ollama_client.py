@@ -24,7 +24,7 @@ class OllamaClient(BaseAIClient):
         env_path = Path(__file__).resolve().parent.parent / "config" / ".env"
         self.api_url = "http://127.0.0.1:11434/v1/chat/completions"
         self.api_key = ""
-        self.model = "ollama"
+        self.model = "qwen3.5:2b"  # 默认使用qwen3.5:2b模型
         try:
             if env_path.exists():
                 with open(env_path, 'r', encoding='utf-8') as f:
@@ -42,7 +42,9 @@ class OllamaClient(BaseAIClient):
                             self.api_key = v
                         elif k == 'XF_MODEL':
                             self.model = v
-        except Exception:
+            print(f"[信息] OllamaClient配置: URL={self.api_url}, Model={self.model}")
+        except Exception as e:
+            print(f"[错误] 加载配置时发生错误: {str(e)}")
             # 保持默认配置，确保不会阻塞页面
             pass
 
@@ -53,7 +55,22 @@ class OllamaClient(BaseAIClient):
         try:
             resp = requests.post(self.api_url, json=payload, headers=headers, timeout=timeout)
             if resp.status_code != 200:
-                return {"error": f"HTTP {resp.status_code}: {resp.text}"}
+                # 尝试解析服务器返回的 JSON 错误信息
+                try:
+                    err = resp.json()
+                    msg = ''
+                    # 常见 Ollama 返回示例中会包含 model not found 的提示
+                    if isinstance(err, dict):
+                        # 支持多种错误字段路径
+                        if 'error' in err and isinstance(err['error'], dict):
+                            msg = err['error'].get('message', '') or str(err['error'])
+                        else:
+                            msg = err.get('message', '') or str(err)
+                    if msg and 'not found' in msg and 'model' in msg:
+                        return {"error": f"模型未找到: {msg}. 请运行 'ollama list' 查看本地已安装模型，并在 config/.env 中设置 XF_MODEL 为可用模型名。"}
+                    return {"error": f"HTTP {resp.status_code}: {resp.text}"}
+                except Exception:
+                    return {"error": f"HTTP {resp.status_code}: {resp.text}"}
             try:
                 return resp.json()
             except Exception:
@@ -62,9 +79,14 @@ class OllamaClient(BaseAIClient):
             return {"error": str(e)}
 
     def generate_text(self, prompt: str) -> str:
+        # 强制模型以中文输出，并提供 system 指令以保证输出格式规范
+        system_msg = "你是一个专业的中文学习助手，始终用中文回答。严格按照用户要求的格式输出，仅返回所需内容，不要添加额外解释。对于学习画像，确保所有字段和内容都是中文。"
         payload = {
             "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": prompt}
+            ],
             "stream": False,
         }
         result = self._post(payload)
@@ -120,4 +142,3 @@ class OllamaClient(BaseAIClient):
     # 兼容旧接口
     def generate(self, prompt: str, **kwargs) -> str:
         return self.generate_text(prompt)
-

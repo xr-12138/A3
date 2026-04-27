@@ -101,15 +101,39 @@ def render_profile_page():
                 pass
 
     if st.session_state.profile:
-        st.subheader("学生画像")
         profile = st.session_state.profile
-        try:
-            if isinstance(profile, (dict, list)):
-                st.json(profile)
-            else:
-                st.markdown(str(profile))
-        except Exception:
-            st.markdown(str(profile))
+        def render_profile_card(profile_obj):
+            st.subheader("学生画像（结构化展示）")
+            # 如果是字典，展示为表格 + 可展开详情
+            try:
+                if isinstance(profile_obj, dict):
+                    # 构建表格数据：字段 + 值（字符串化）
+                    rows = []
+                    for k, v in profile_obj.items():
+                        try:
+                            # 尝试更友好地展示列表/字典
+                            if isinstance(v, (dict, list)):
+                                val = f"(complex) {type(v).__name__}"
+                            else:
+                                val = str(v)
+                        except Exception:
+                            val = str(v)
+                        rows.append({"field": k, "value": val})
+
+                    st.table(rows)
+
+                    # 对复杂字段提供可展开查看
+                    for k, v in profile_obj.items():
+                        if isinstance(v, (dict, list)):
+                            with st.expander(f"{k} 详情"):
+                                st.json(v)
+                else:
+                    # 列表或其他类型，直接显示
+                    st.json(profile_obj)
+            except Exception:
+                st.markdown(str(profile_obj))
+
+        render_profile_card(profile)
 
 
 
