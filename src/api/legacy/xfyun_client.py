@@ -1,4 +1,4 @@
-# src/api/xfyun_client.py
+# 归档：旧的 websocket 版 xfyun client
 import sys
 from pathlib import Path
 root_path = Path(__file__).parent.parent.parent
@@ -14,11 +14,13 @@ from datetime import datetime
 from urllib.parse import urlencode
 from config.xfyun_config import XFYUN_CONFIG
 
+
 class XFYunClient:
+    """归档：原始 xfyun websocket 客户端，实现保留以便回溯"""
     def __init__(self):
-        self.app_id = XFYUN_CONFIG["app_id"]
-        self.api_key = XFYUN_CONFIG["api_key"]
-        self.api_secret = XFYUN_CONFIG["api_secret"]
+        self.app_id = XFYUN_CONFIG.get("app_id")
+        self.api_key = XFYUN_CONFIG.get("api_key")
+        self.api_secret = XFYUN_CONFIG.get("api_secret")
         self.host = "spark-api.xf-yun.com"
         self.path = "/v2.1/chat"
         self.domain = "generalv2"
@@ -29,12 +31,7 @@ class XFYunClient:
         sha = hmac.new(self.api_secret.encode(), signature_origin.encode(), hashlib.sha256)
         digest = base64.b64encode(sha.digest()).decode()
         authorization = f'api_key="{self.api_key}", algorithm="hmac-sha256", headers="host date request-line", signature="{digest}"'
-        
-        params = {
-            "host": self.host,
-            "date": date,
-            "authorization": authorization
-        }
+        params = {"host": self.host, "date": date, "authorization": authorization}
         return f"wss://{self.host}{self.path}?{urlencode(params)}"
 
     def generate(self, prompt):
@@ -47,22 +44,20 @@ class XFYunClient:
                     "payload": {"message": {"text": [{"role": "user", "content": prompt}]}}
                 }
                 await ws.send(json.dumps(data))
-                
                 full_result = ""
                 while True:
                     resp = await ws.recv()
                     res = json.loads(resp)
                     if res["header"]["code"] != 0:
                         return f"错误：{res['header']['message']}"
-                    
                     full_result += res["payload"]["choices"]["text"][0]["content"]
                     if res["header"]["status"] == 2:
                         return full_result
-        
+
         try:
             return asyncio.run(_run())
         except Exception as e:
             return f"异常：{str(e)}"
 
-xfyun_client = XFYunClient()
 
+xfyun_client = XFYunClient()

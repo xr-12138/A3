@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 import streamlit as st
 
-from src.api.xfyun_api import XFYunClient
+from src.api.ai_client import get_ai_client
 
 from src.agents.multi_agent_scheduler import MultiAgentScheduler
 from src.core.database import Database
@@ -38,7 +38,7 @@ def sidebar_nav() -> str:
 def get_runtime_objects():
     """从 session_state 获取或创建 ai、scheduler、db 等运行时对象"""
     if "ai" not in st.session_state:
-        st.session_state.ai = XFYunClient()
+        st.session_state.ai = get_ai_client()
 
     if "scheduler" not in st.session_state:
         st.session_state.scheduler = MultiAgentScheduler(st.session_state.ai)
