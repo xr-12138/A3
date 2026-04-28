@@ -343,9 +343,11 @@ def render_tutor_page():
                 background: white;
                 border-radius: 12px;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                padding: 20px;
-                min-height: 400px;
-                max-height: 500px;
+                padding: 12px 16px;
+                /* 缩小初始占位，避免无用的大白块 */
+                min-height: 40px;
+                margin-top: 8px;
+                max-height: calc(100vh - 220px);
                 overflow-y: auto;
             }
             .user-message {
@@ -394,14 +396,15 @@ def render_tutor_page():
             st.session_state.chat_history.append({"role": "ai", "text": text})
         st.rerun()
 
-    # 显示对话历史（放在输入框下面）
-    st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
-    for msg in st.session_state.chat_history:
-        if msg["role"] == "user":
-            st.markdown(f'<div class="user-message"><strong>👤 学生：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # 仅在有历史消息时渲染白色聊天容器，避免空白占位
+    if st.session_state.chat_history:
+        st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
+        for msg in st.session_state.chat_history:
+            if msg["role"] == "user":
+                st.markdown(f'<div class="user-message"><strong>👤 学生：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 
