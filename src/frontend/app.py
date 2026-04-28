@@ -375,15 +375,6 @@ def render_tutor_page():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # 显示对话历史
-    st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
-    for msg in st.session_state.chat_history:
-        if msg["role"] == "user":
-            st.markdown(f'<div class="user-message"><strong>👤 学生：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
     # 使用表单实现按回车键发送
     with st.form(key="tutor_form"):
         col1, col2 = st.columns([4, 1])
@@ -402,6 +393,15 @@ def render_tutor_page():
                 text = f"回答生成失败: {str(e)}"
             st.session_state.chat_history.append({"role": "ai", "text": text})
         st.rerun()
+
+    # 显示对话历史（放在输入框下面）
+    st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            st.markdown(f'<div class="user-message"><strong>👤 学生：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 
