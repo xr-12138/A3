@@ -40,20 +40,23 @@ class TutoringAgent:
         text = re.sub(r"[\x00-\x1F\x7F]", "", text)
         # 把连续超过3个相同符号缩短为3个
         text = re.sub(r"([=~`\-\*_#])\1{3,}", r"\1\1\1", text)
-        # 把超过2个空行压缩为2个
+        # 把超过2个空行压缩为2个（保留段落分隔），并保留行首空格以兼容代码块的缩进
         text = re.sub(r"\n{3,}", "\n\n", text)
-        # 移除行首行尾的空白字符
         lines = text.split('\n')
-        cleaned_lines = []
-        for line in lines:
-            # 移除行首行尾的空白
-            cleaned_line = line.strip()
-            # 只添加非空行
-            if cleaned_line:
-                cleaned_lines.append(cleaned_line)
-        text = '\n\n'.join(cleaned_lines)
-        # 修剪首尾空白
-        text = text.strip()
+        # 仅去除行尾空白，保留行首缩进
+        cleaned_lines = [line.rstrip() for line in lines]
+        # 压缩连续空行为最多两个，保留段落分隔
+        collapsed = []
+        empty_count = 0
+        for line in cleaned_lines:
+            if line.strip() == "":
+                empty_count += 1
+                if empty_count <= 2:
+                    collapsed.append("")
+            else:
+                empty_count = 0
+                collapsed.append(line)
+        text = '\n'.join(collapsed).strip()
 
         # 如果返回中不包含中文，添加提示（但仍返回原文）
         if not re.search(r"[\u4e00-\u9fff]", text):

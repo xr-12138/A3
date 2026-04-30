@@ -359,6 +359,8 @@ def render_tutor_page():
                 max-width: 70%;
                 margin-left: auto;
                 box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+                font-size: 15px;
+                line-height: 1.6;
             }
             .ai-message {
                 background: #f8f9fa;
@@ -368,7 +370,39 @@ def render_tutor_page():
                 margin-bottom: 15px;
                 max-width: 70%;
                 border: 1px solid #e9ecef;
+                font-size: 15px;
+                line-height: 1.6;
+                white-space: normal;
             }
+            .ai-message .ai-content {
+                margin-top: 8px;
+                color: #333;
+                font-size: 15px;
+                line-height: 1.6;
+                word-break: break-word;
+                overflow-wrap: anywhere;
+            }
+            .ai-message .ai-content pre {
+                background: #2d2d2d;
+                color: #f8f8f2;
+                padding: 10px;
+                border-radius: 8px;
+                overflow: auto;
+                font-size: 13px;
+            }
+            .ai-message .ai-content code {
+                background: #f5f5f5;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+            .ai-message .ai-content blockquote {
+                border-left: 4px solid #eee;
+                padding-left: 12px;
+                color: #666;
+                margin: 8px 0;
+            }
+            .ai-message, .user-message { display: inline-block; }
         </style>
     """, unsafe_allow_html=True)
     
@@ -390,7 +424,11 @@ def render_tutor_page():
         with st.spinner("🤖 AI 正在生成回复..."):
             try:
                 resp = scheduler.execute_task("tutoring", q)
-                text = resp if isinstance(resp, str) else json.dumps(resp, ensure_ascii=False)
+                # 如果是 dict 且包含 answer 字段，提取并作为 Markdown 文本渲染；否则按字符串处理
+                if isinstance(resp, dict) and "answer" in resp:
+                    text = resp.get("answer")
+                else:
+                    text = resp if isinstance(resp, str) else json.dumps(resp, ensure_ascii=False)
             except Exception as e:
                 text = f"回答生成失败: {str(e)}"
             st.session_state.chat_history.append({"role": "ai", "text": text})
@@ -401,9 +439,15 @@ def render_tutor_page():
         st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
         for msg in st.session_state.chat_history:
             if msg["role"] == "user":
-                st.markdown(f'<div class="user-message"><strong>👤 学生：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="user-message"><strong>👤 学生：</strong> {msg["text"]}</div>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong>{msg["text"]}</div>', unsafe_allow_html=True)
+                # 将 AI 的 Markdown 文本转换为 HTML 并整体放入消息气泡内，保证样式一致且支持代码/列表
+                try:
+                    import markdown as _md
+                    html = _md.markdown(msg["text"], extensions=["fenced_code", "codehilite", "tables"]) if isinstance(msg["text"], str) else str(msg["text"])
+                    st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong><div class="ai-content">{html}</div></div>', unsafe_allow_html=True)
+                except Exception:
+                    st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong> {msg["text"]}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 
