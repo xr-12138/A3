@@ -382,6 +382,32 @@ def render_tutor_page():
                 word-break: break-word;
                 overflow-wrap: anywhere;
             }
+            /* 统一AI回复中的所有元素字体大小，避免标题过大 */
+            .ai-message .ai-content h1,
+            .ai-message .ai-content h2,
+            .ai-message .ai-content h3,
+            .ai-message .ai-content h4,
+            .ai-message .ai-content h5,
+            .ai-message .ai-content h6 {
+                font-size: 15px !important;
+                font-weight: 600;
+                margin: 8px 0;
+                color: #333;
+            }
+            .ai-message .ai-content p {
+                font-size: 15px;
+                margin: 6px 0;
+            }
+            .ai-message .ai-content ul,
+            .ai-message .ai-content ol {
+                font-size: 15px;
+                padding-left: 20px;
+                margin: 6px 0;
+            }
+            .ai-message .ai-content li {
+                font-size: 15px;
+                margin: 4px 0;
+            }
             .ai-message .ai-content pre {
                 background: #2d2d2d;
                 color: #f8f8f2;
@@ -401,6 +427,7 @@ def render_tutor_page():
                 padding-left: 12px;
                 color: #666;
                 margin: 8px 0;
+                font-size: 15px;
             }
             .ai-message, .user-message { display: inline-block; }
         </style>

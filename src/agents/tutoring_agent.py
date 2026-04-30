@@ -40,6 +40,13 @@ class TutoringAgent:
         text = re.sub(r"[\x00-\x1F\x7F]", "", text)
         # 把连续超过3个相同符号缩短为3个
         text = re.sub(r"([=~`\-\*_#])\1{3,}", r"\1\1\1", text)
+        
+        # 在句子结尾添加换行，使回答更易读
+        # 在句号、问号、感叹号后添加换行（保留段落结构）
+        text = re.sub(r"([。！？])\s*([^\n])", r"\1\n\2", text)
+        # 在中文省略号后添加换行
+        text = re.sub(r"(……)\s*([^\n])", r"\1\n\2", text)
+        
         # 把超过2个空行压缩为2个（保留段落分隔），并保留行首空格以兼容代码块的缩进
         text = re.sub(r"\n{3,}", "\n\n", text)
         lines = text.split('\n')
