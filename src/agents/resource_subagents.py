@@ -19,7 +19,88 @@ class MindmapAgent:
         self.ai = ai_client
 
     def run(self, topic: str) -> Dict:
-        return self.ai.generate_mindmap(topic)
+        # 规范化不同 AI 客户端可能返回的思维导图格式，最终确保返回结构为
+        # {"title": "...", "children": [ {"title": "...", "children": [...]}, ... ]}
+        raw = self.ai.generate_mindmap(topic)
+
+        # 如果客户端返回的是字符串，尝试解析为 JSON
+        try:
+            if isinstance(raw, str):
+                import json
+                raw = json.loads(raw)
+        except Exception:
+            pass
+
+        if not isinstance(raw, dict):
+            # 回退为简单结构
+            return {"title": topic, "children": [{"title": "基础概念", "note": "该节点包含基本定义与关键术语"}, {"title": "应用场景", "note": "该节点包含典型应用与案例"}]}
+
+        # 如果返回使用 'nodes' 字段，转换为 children 列表
+        if "children" not in raw and "nodes" in raw:
+            nodes = raw.get("nodes") or []
+            children = []
+            for n in nodes:
+                if isinstance(n, dict):
+                    title = n.get("title") or n.get("name") or str(n)
+                    child = {"title": title}
+                else:
+                    child = {"title": str(n)}
+                children.append(child)
+            raw["children"] = children
+
+        # 最终确保至少包含 title 字段
+        if "title" not in raw:
+            raw["title"] = topic
+
+        # 若是连接到真实 AI（如 OllamaClient），尝试一次性补全每个一级节点的 note 与 2 个子节点
+        try:
+            if hasattr(self.ai, "model") and isinstance(raw.get("children"), list) and len(raw["children"]) > 0:
+                top_titles = [c.get("title") if isinstance(c, dict) else str(c) for c in raw["children"]]
+                # 构建一次性提示，返回 JSON 映射：{"节点名": {"note": "...", "children": [{"title":"...","note":"..."}, ...]}, ...}
+                prompt = (
+                    f"针对课程主题 '{topic}'，请为下面的一级知识点生成简短描述(note，不超过60字)和最多2个三级子节点，每个子节点需包含title和note。"
+                    f" 一级节点列表：{top_titles}\n"
+                    "请只返回严格的 JSON，格式例如：{\"节点名\": {\"note\": \"...\", \"children\": [{\"title\":\"子节点\", \"note\":\"...\"}]}, ... }"
+                )
+                text = self.ai.generate_text(prompt)
+                import json as _json
+                try:
+                    # 提取 JSON 块
+                    m = _json.loads(text) if isinstance(text, str) and text.strip().startswith("{") else None
+                except Exception:
+                    m = None
+                if not m:
+                    # 尝试用 regex 提取
+                    import re as _re
+                    mm = _re.search(r"(\{.*\})", text, flags=_re.S)
+                    if mm:
+                        try:
+                            m = _json.loads(mm.group(1))
+                        except Exception:
+                            m = None
+
+                if isinstance(m, dict):
+                    # 将补全内容合并回 raw
+                    for c in raw.get("children", []):
+                        title = c.get("title") if isinstance(c, dict) else str(c)
+                        entry = m.get(title) or m.get(str(title))
+                        if entry and isinstance(entry, dict):
+                            if "note" in entry and not c.get("note"):
+                                c["note"] = entry.get("note")
+                            if "children" in entry and (not c.get("children") or len(c.get("children")) == 0):
+                                # 转换子节点为 dict 结构
+                                children_list = []
+                                for sub in entry.get("children", [])[:2]:
+                                    if isinstance(sub, dict):
+                                        children_list.append({"title": sub.get("title") or sub.get("name") or str(sub), "note": sub.get("note")})
+                                    else:
+                                        children_list.append({"title": str(sub)})
+                                c["children"] = children_list
+        except Exception:
+            # 补全过程非关键，忽略错误
+            pass
+
+        return raw
 
 
 class QuestionBankAgent:

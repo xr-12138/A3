@@ -259,10 +259,59 @@ def render_resource_page():
                         st.info("未找到指定类型，展示完整生成结果：")
                         st.json(resources)
                     else:
-                        if isinstance(content, (dict, list)):
-                            st.json(content)
+                        # 专门处理 mindmap：如果是结构化 dict，则渲染为图片并预览
+                        if rtype == "mindmap":
+                            try:
+                                rg = ResourceGenerator(work_dir=str(GENERATED_DIR))
+                                # 允许用户自定义文件名（默认以知识点命名）
+                                default_name = f"{knowledge_point}_mindmap.png"
+                                fn_input = st.text_input("导出文件名（含 .png）：", value=default_name)
+
+                                # 解析并渲染结构化内容，支持 JSON 字符串或 dict
+                                parsed = None
+                                if isinstance(content, str):
+                                    import json as _json
+                                    try:
+                                        parsed = _json.loads(content)
+                                    except Exception:
+                                        parsed = None
+                                elif isinstance(content, dict):
+                                    parsed = content
+
+                                if parsed and isinstance(parsed, dict):
+                                    # 确保文件名以 .png 结尾
+                                    out_name = fn_input if fn_input.endswith('.png') else fn_input + '.png'
+                                    rendered = rg.render_mindmap(parsed, output_name=out_name, format='png', size='12,8', dpi=200)
+                                    # 展示更大的图片（宽度翻倍）
+                                    try:
+                                        st.image(rendered, width=1200)
+                                    except Exception:
+                                        st.image(rendered)
+
+                                    # 添加下载按钮：读取文件二进制并提供下载
+                                    try:
+                                        with open(rendered, 'rb') as _f:
+                                            data = _f.read()
+                                        st.download_button("⬇️ 下载 PNG", data=data, file_name=os.path.basename(out_name), mime="image/png")
+                                    except Exception as e:
+                                        st.warning(f"无法提供下载：{e}")
+                                else:
+                                    # 非结构化内容回退为文本/JSON 展示
+                                    if isinstance(content, (dict, list)):
+                                        st.json(content)
+                                    else:
+                                        st.markdown(str(content))
+                            except Exception as e:
+                                st.error(f"思维导图渲染失败: {e}")
+                                if isinstance(content, (dict, list)):
+                                    st.json(content)
+                                else:
+                                    st.markdown(str(content))
                         else:
-                            st.markdown(content)
+                            if isinstance(content, (dict, list)):
+                                st.json(content)
+                            else:
+                                st.markdown(content)
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # 持久化生成的资源到 DB

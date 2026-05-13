@@ -61,7 +61,7 @@ class ResourceGenerator:
     def _node_id(self, idx: int) -> str:
         return f"n{idx}"
 
-    def render_mindmap(self, structure: Dict[str, Any], output_name: Optional[str] = None, format: str = "png") -> str:
+    def render_mindmap(self, structure: Dict[str, Any], output_name: Optional[str] = None, format: str = "png", size: str = "6,4", dpi: int = 150) -> str:
         """根据已构建的知识点树渲染思维导图并保存为 PNG。
 
         structure 示例：
@@ -79,20 +79,27 @@ class ResourceGenerator:
         out_path_base = os.path.join(self.work_dir, output_name)
         dot = Digraph(name="mindmap", format=format)
         dot.attr(rankdir="LR")
-        dot.attr('node', shape='box', style='rounded,filled', fillcolor='lightyellow', fontsize='12')
+        # 控制输出尺寸和分辨率，减小生成图片的物理大小
+        dot.graph_attr.update({'size': size, 'dpi': str(dpi)})
+        dot.attr('node', shape='box', style='rounded,filled', fillcolor='lightyellow', fontsize='10')
 
         counter = {"i": 0}
 
         def add_nodes(node: Dict[str, Any], parent_id: Optional[str] = None) -> str:
             counter["i"] += 1
             nid = self._node_id(counter["i"])
-            label = node.get("title", "")
+            title = node.get("title", "")
             note = node.get("note")
+            # 优先展示 title，其下换行显示 note（做简单换行处理以避免超宽节点）
             if note:
-                label = f"{label}\n{note}"
+                import textwrap
+                wrapped_note = "\n".join(textwrap.wrap(str(note), width=28))
+                label = f"{title}\n{wrapped_note}"
+            else:
+                label = title
             # 防止 label 过长，做简单裁剪
-            if len(label) > 120:
-                label = label[:117] + "..."
+            if len(label) > 240:
+                label = label[:237] + "..."
             dot.node(nid, label)
             if parent_id:
                 dot.edge(parent_id, nid)

@@ -116,13 +116,45 @@ class OllamaClient(BaseAIClient):
             return f"错误: 解析响应时异常: {str(e)}"
 
     def generate_mindmap(self, topic: str) -> Dict:
-        prompt = f"请为'{topic}'生成一个思维导图，返回JSON格式，包含title和children字段。"
+        # 更详细且健壮的提示，要求严格 JSON 输出，包含多层次信息：title, note, children
+        prompt = (
+            f"请为高校课程的知识主题'{topic}'生成一个结构化的思维导图，返回严格的 JSON。"
+            "格式示例：{\n  \"title\": \"根节点\",\n  \"note\": \"一句话概述\",\n  \"children\": [ {\"title\":\"节点名\", \"note\":\"简短说明\", \"children\": [...] }, ... ]\n}\n"
+            "每个节点应尽量包含：1) title（字符串），2) note（不超过60字的简短描述，可选），3) children（同结构的数组，可选）。"
+            "请至少输出 3 个二级节点，每个二级节点下尽量包含 2 个三级子节点（如适用）。不要包含非 JSON 文本或额外说明。"
+        )
+
         text = self.generate_text(prompt)
+
+        # 尝试从返回中提取 JSON 块（兼容模型返回多余文本的情况）
+        def _extract_json(s: str) -> Optional[str]:
+            try:
+                json.loads(s)
+                return s
+            except Exception:
+                pass
+            m = re.search(r"(\{.*\})", s, flags=re.S)
+            if m:
+                return m.group(1)
+            return None
+
         try:
-            return json.loads(text)
+            js = _extract_json(text)
+            if js:
+                return json.loads(js)
         except Exception:
-            # 返回简单默认结构
-            return {"title": topic, "children": [{"title": "基础概念"}, {"title": "应用场景"}]}
+            pass
+
+        # 回退：如果解析失败，构造一个较为完整的占位结构，包含描述（note）以便前端展示
+        return {
+            "title": topic,
+            "note": f"{topic} 概览：核心概念与应用场景",
+            "children": [
+                {"title": "基础概念", "note": f"{topic} 的基础概念、定义与关键术语"},
+                {"title": "核心原理", "note": f"{topic} 的主要原理与常见算法/方法"},
+                {"title": "实践应用", "note": f"{topic} 的典型应用场景与实战案例"}
+            ]
+        }
 
     def generate_code(self, topic: str, language: str = "python") -> str:
         prompt = f"请生成关于'{topic}'的{language}代码示例，代码要完整可运行，包含必要的注释和说明。"

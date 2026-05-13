@@ -74,14 +74,35 @@ class MockClient(BaseAIClient):
         return json.dumps(profile, ensure_ascii=False, indent=2)
 
     def generate_mindmap(self, topic: str):
+        # 返回更丰富的样例结构，包含 note 与三级子节点，便于本地调试和前端展示
         return {
             "title": f"{topic} 知识体系",
-            "nodes": [
-                f"{topic} 基础概念",
-                f"{topic} 核心原理",
-                f"{topic} 实践应用",
-                f"{topic} 常见问题",
-                f"{topic} 进阶方向"
+            "note": f"{topic} 的核心概览与学习路径",
+            "children": [
+                {
+                    "title": f"{topic} 基础概念",
+                    "note": "涉及定义、核心术语与基础数学背景",
+                    "children": [
+                        {"title": "定义与术语", "note": "解释核心概念与常用术语"},
+                        {"title": "数学基础", "note": "需要的线性代数与概率论基础"}
+                    ]
+                },
+                {
+                    "title": f"{topic} 核心原理",
+                    "note": "主要算法、模型与实现原理",
+                    "children": [
+                        {"title": "主要算法", "note": "列举常见算法并简述适用场景"},
+                        {"title": "模型训练与优化", "note": "训练流程、损失函数与优化方法"}
+                    ]
+                },
+                {
+                    "title": f"{topic} 实践应用",
+                    "note": "典型工程/研究方向与案例",
+                    "children": [
+                        {"title": "行业应用", "note": "推荐的应用场景示例"},
+                        {"title": "项目示例", "note": "小型项目与实操练习建议"}
+                    ]
+                }
             ]
         }
 
