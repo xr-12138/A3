@@ -161,14 +161,23 @@ class OllamaClient(BaseAIClient):
         return self.generate_text(prompt)
 
     def generate_questions(self, topic: str, num: int = 5) -> List:
-        prompt = f"请为'{topic}'生成{num}个练习题，返回JSON格式，包含q（问题）和a（答案）字段的列表。"
+        # 请求模型返回结构化题库：每题包含 q（问题）、a（答案）和 explanation（详解）
+        prompt = (
+            f"请为'{topic}'生成{num}个练习题，返回严格的 JSON 列表，每个元素包含字段："
+            "q（问题，中文）、a（标准答案，中文）、explanation（详细解析，中文，步骤清晰，便于学生学习）。"
+            " 示例输出：[{\"q\": \"问题1\", \"a\": \"答案1\", \"explanation\": \"详解1\"}, ...]。"
+        )
         text = self.generate_text(prompt)
         try:
             return json.loads(text)
         except Exception:
             questions = []
             for i in range(num):
-                questions.append({"q": f"{topic} 的第 {i+1} 个问题？", "a": f"示例答案 {i+1}"})
+                questions.append({
+                    "q": f"{topic} 的第 {i+1} 个问题？",
+                    "a": f"示例答案 {i+1}",
+                    "explanation": f"示例解析 {i+1}: 这是对答案的详细分步说明，帮助学习者理解解题思路。"
+                })
             return questions
 
     # 兼容旧接口

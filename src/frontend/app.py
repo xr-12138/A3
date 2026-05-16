@@ -308,10 +308,42 @@ def render_resource_page():
                                 else:
                                     st.markdown(str(content))
                         else:
-                            if isinstance(content, (dict, list)):
-                                st.json(content)
+                            # 专门处理题库：支持结构化列表，每题包含 q、a、explanation；答案默认隐藏，点击查看
+                            if rtype == "question_bank":
+                                parsed = None
+                                if isinstance(content, str):
+                                    try:
+                                        parsed = json.loads(content)
+                                    except Exception:
+                                        parsed = None
+                                elif isinstance(content, list):
+                                    parsed = content
+
+                                if isinstance(parsed, list):
+                                    for idx, item in enumerate(parsed):
+                                        try:
+                                            qtext = item.get("q") if isinstance(item, dict) else str(item)
+                                        except Exception:
+                                            qtext = str(item)
+                                        st.markdown(f"**{idx+1}. {qtext}**")
+                                        with st.expander("查看答案与解析"):
+                                            if isinstance(item, dict):
+                                                ans = item.get("a") or item.get("answer") or "（未提供答案）"
+                                                expl = item.get("explanation") or item.get("解析") or item.get("explain") or "（未提供详细解析）"
+                                                # 使用 Markdown 渲染答案与详解，确保可读性
+                                                st.markdown(f"**答案：**\n\n{ans}")
+                                                st.markdown(f"**详解：**\n\n{expl}")
+                                            else:
+                                                st.markdown(str(item))
+                                else:
+                                    # 非结构化回退为文本展示，保持答案隐藏提示
+                                    st.markdown("无法解析为结构化题库，显示原始内容：")
+                                    st.markdown(str(content))
                             else:
-                                st.markdown(content)
+                                if isinstance(content, (dict, list)):
+                                    st.json(content)
+                                else:
+                                    st.markdown(content)
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # 持久化生成的资源到 DB

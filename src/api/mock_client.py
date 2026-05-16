@@ -119,4 +119,14 @@ if __name__ == "__main__":
 """
 
     def generate_questions(self, topic: str, num: int = 5):
-        return [f"{i+1}. 什么是{topic}的核心原理？" for i in range(num)]
+        # 返回结构化题库：每题包含 q（题目）、a（答案）和 explanation（详解）
+        qs = []
+        for i in range(num):
+            q = f"{i+1}. 请简述{topic}的一个核心原理或概念。"
+            a = f"示例答案：{topic} 的核心原理是...（简要）"
+            explanation = (
+                f"详解：{topic} 的核心原理可以从以下几个方面理解：首先，...（背景和直观解释）；"
+                "其次，结合常见例子可以看到其应用；最后给出推理过程或证明要点，适合学生参考学习。"
+            )
+            qs.append({"q": q, "a": a, "explanation": explanation})
+        return qs
