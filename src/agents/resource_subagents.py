@@ -124,5 +124,12 @@ class VideoAgent:
         self.ai = ai_client
 
     def run(self, topic: str) -> str:
-        prompt = f"为主题 \"{topic}\" 写一个视频讲稿，包含分镜与解说要点。"
-        return self.ai.generate_text(prompt)
+        # 调用 AI 客户端的结构化阅读材料接口，期望返回列表形式（每项为 dict）
+        try:
+            return self.ai.generate_reading_material(topic)
+        except Exception:
+            # 回退为之前的文本提示（兼容旧的 AI 客户端实现）
+            prompt = (
+                f"请为高校课程主题'{topic}'生成一份拓展阅读材料列表，返回中文文本或 Markdown。每条推荐应包含：1) 标题；2) 资源类型（书籍/论文/博客/视频/教程）；3) 不超过120字的摘要或为何推荐该资源；4) 难度标签（初级/中级/高级）；5) 推荐顺序或学习阶段；如有可用链接或 DOI 请一并提供。"
+            )
+            return self.ai.generate_text(prompt)

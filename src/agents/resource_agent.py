@@ -29,5 +29,5 @@ class ResourceAgent:
             "mindmap": self.mind.run(topic),
             "question_bank": self.qbank.run(topic),
             "code": self.code.run(topic),
-            "video_script": self.video.run(topic),
+            "reading_material": self.video.run(topic),
         }

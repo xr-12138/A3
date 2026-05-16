@@ -236,7 +236,7 @@ def render_resource_page():
         with col2:
             knowledge_point = st.text_input("知识点", placeholder="例如：神经网络基础", value="")
         
-        rtype = st.selectbox("资源类型", ["document", "mindmap", "question_bank", "code", "video_script"], index=0)
+        rtype = st.selectbox("资源类型", ["document", "mindmap", "question_bank", "code", "reading_material"], index=0)
 
         if st.button("🚀 生成资源", use_container_width=True):
             if not course or not knowledge_point:
@@ -338,6 +338,69 @@ def render_resource_page():
                                 else:
                                     # 非结构化回退为文本展示，保持答案隐藏提示
                                     st.markdown("无法解析为结构化题库，显示原始内容：")
+                                    st.markdown(str(content))
+                            elif rtype == "reading_material":
+                                parsed = None
+                                if isinstance(content, str):
+                                    try:
+                                        parsed = json.loads(content)
+                                    except Exception:
+                                        parsed = None
+                                elif isinstance(content, list):
+                                    parsed = content
+
+                                if isinstance(parsed, list):
+                                    # 按 order 排序，缺失 order 的放后面
+                                    try:
+                                        parsed_sorted = sorted(parsed, key=lambda x: (x.get("order") if isinstance(x, dict) and x.get("order") is not None else 9999))
+                                    except Exception:
+                                        parsed_sorted = parsed
+
+                                    for item in parsed_sorted:
+                                        if isinstance(item, dict):
+                                            title = item.get("title", "未命名资源")
+                                            rtype_txt = item.get("type", "")
+                                            summary = item.get("summary", "")
+                                            difficulty = item.get("difficulty", "")
+                                            link = item.get("link", "")
+                                            order = item.get("order", None)
+                                            recommended_for = item.get("recommended_for", "")
+                                            why = item.get("why_recommend", "")
+                                            est = item.get("estimated_time", "")
+
+                                            # 卡片式渲染，突出标题与关键字段
+                                            header = f"**{order}. {title}**" if order else f"**{title}**"
+                                            st.markdown(header)
+                                            meta = []
+                                            if rtype_txt:
+                                                meta.append(f"类型：{rtype_txt}")
+                                            if difficulty:
+                                                meta.append(f"难度：{difficulty}")
+                                            if est:
+                                                meta.append(f"预计耗时：{est}")
+                                            if meta:
+                                                st.markdown("- " + "  |  ".join(meta))
+
+                                            if recommended_for:
+                                                st.markdown(f"- **适合人群：** {recommended_for}")
+                                            if why:
+                                                st.markdown(f"- **推荐理由：** {why}")
+                                            if summary:
+                                                st.markdown(f"- **摘要：** {summary}")
+                                            if link:
+                                                st.markdown(f"- **链接/DOI：** {link}")
+                                            st.markdown('---')
+                                        else:
+                                            st.markdown(str(item))
+
+                                    # 提供下载按钮导出 JSON
+                                    try:
+                                        data = json.dumps(parsed_sorted, ensure_ascii=False, indent=2)
+                                        st.download_button("⬇️ 下载拓展阅读（JSON）", data=data, file_name=f"{knowledge_point}_reading_material.json", mime="application/json")
+                                    except Exception:
+                                        pass
+                                else:
+                                    st.markdown("无法解析为结构化拓展阅读，显示原始内容：")
                                     st.markdown(str(content))
                             else:
                                 if isinstance(content, (dict, list)):

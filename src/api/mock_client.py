@@ -130,3 +130,20 @@ if __name__ == "__main__":
             )
             qs.append({"q": q, "a": a, "explanation": explanation})
         return qs
+
+    def generate_reading_material(self, topic: str, num: int = 5):
+        # 返回结构化的拓展阅读示例，用于本地调试
+        materials = []
+        for i in range(num):
+            materials.append({
+                "title": f"{topic} 深入阅读示例 {i+1}",
+                "type": "书籍" if i % 3 == 0 else ("论文" if i % 3 == 1 else "博客"),
+                "summary": f"这是关于 {topic} 的第{i+1} 个拓展阅读，概述内容、适合的学习背景与收益（约50-100字）。",
+                "difficulty": "中级" if i % 2 == 0 else "高级",
+                "order": i + 1,
+                "link": "",
+                "recommended_for": "中等或希望进阶的学生",
+                "why_recommend": f"补充{topic}理论与实践联系，包含案例与代码示例。",
+                "estimated_time": "2h",
+            })
+        return materials

@@ -29,6 +29,11 @@ class BaseAIClient(ABC):
     def generate_questions(self, topic: str, num: int = 5) -> List:
         """生成题目列表（可为 list 或 JSON 可序列化结构）。"""
         raise NotImplementedError()
+    
+    @abstractmethod
+    def generate_reading_material(self, topic: str, num: int = 5) -> List:
+        """生成拓展阅读材料列表，返回可序列化的列表，每项应包含 title/type/summary/difficulty/order/link 等字段。"""
+        raise NotImplementedError()
 # src/api/base.py（统一接口）
 class BaseAIClient:
     def generate(self, prompt):

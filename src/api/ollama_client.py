@@ -180,6 +180,40 @@ class OllamaClient(BaseAIClient):
                 })
             return questions
 
+    def generate_reading_material(self, topic: str, num: int = 5) -> List:
+        # 请求模型返回更严格且富含字段的拓展阅读列表（JSON 严格格式）
+        # 要求：只返回纯 JSON 不要额外说明，保证每个条目包含明确字段，便于前端按卡片渲染
+        prompt = (
+            f"请为高校课程主题 '{topic}' 生成 {num} 条拓展阅读推荐，严格返回一个 JSON 列表（仅 JSON，不能有任何非 JSON 的文本）。"
+            " 每个列表元素必须包含以下字段："
+            "\n- title: 资源标题（字符串）"
+            "\n- type: 资源类型（书籍/论文/博客/视频/教程 等）"
+            "\n- summary: 推荐理由或摘要（中文，最多120字）"
+            "\n- difficulty: 难度（初级/中级/高级）"
+            "\n- order: 推荐顺序（整数，从1开始）"
+            "\n- link: 可选链接或 DOI（若无则留空字符串）"
+            "\n- recommended_for: 简短说明哪些学生适合此资源（例如：零基础/进阶/备考）"
+            "\n- why_recommend: 1-2 句强调为何推荐（便于学习者快速判断）"
+            "\n- estimated_time: 预计阅读/观看所需时间（例如：2h，30min，可选）"
+            "\n请确保 summary 不超过120字，why_recommend 不超过40字。返回示例格式：\n[ {\"title\":\"...\",\"type\":\"书籍\",\"summary\":\"...\",\"difficulty\":\"中级\",\"order\":1,\"link\":\"...\",\"recommended_for\":\"进阶\",\"why_recommend\":\"简短理由\",\"estimated_time\":\"2h\" }, ... ]"
+        )
+        text = self.generate_text(prompt)
+        try:
+            return json.loads(text)
+        except Exception:
+            # 回退示例结构
+            mats = []
+            for i in range(num):
+                mats.append({
+                    "title": f"{topic} 深入阅读示例 {i+1}",
+                    "type": "书籍",
+                    "summary": f"示例摘要：关于 {topic} 的拓展阅读，第{i+1}条，适合用于加深理解和实践。",
+                    "difficulty": "中级",
+                    "order": i + 1,
+                    "link": "",
+                })
+            return mats
+
     # 兼容旧接口
     def generate(self, prompt: str, **kwargs) -> str:
         return self.generate_text(prompt)
