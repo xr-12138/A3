@@ -241,7 +241,8 @@ def render_resource_page():
         with col2:
             knowledge_point = st.text_input("知识点", placeholder="例如：神经网络基础", value="")
         
-        rtype = st.selectbox("资源类型", ["document", "mindmap", "question_bank", "code", "reading_material"], index=0)
+        rtype = st.selectbox("资源类型", ["document", "mindmap", "question_bank", "code", "reading_material"], index=0,
+                             format_func=lambda x: {"document": "教学文档", "mindmap": "思维导图", "question_bank": "题库", "code": "代码示例", "reading_material": "拓展阅读"}[x])
 
         if st.button("🚀 生成资源", use_container_width=True):
             if not course or not knowledge_point:
