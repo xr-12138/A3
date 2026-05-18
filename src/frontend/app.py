@@ -146,14 +146,19 @@ def render_profile_page():
         col1, col2 = st.columns([4, 1])
         with col2:
             send_btn = st.button("发送", key="send_profile", use_container_width=True)
-        st.session_state.conv.append({"role": "user", "text": user_input})
-        with st.spinner("正在生成画像..."):
-            try:
-                # 通过统一接口调用多智能体生成画像（动态，不使用硬编码）
-                profile = scheduler.execute_task("profile", user_input)
-            except Exception as e:
-                profile = {"error": f"画像生成失败: {str(e)}"}
-            st.session_state.profile = profile
+        # 仅在点击发送且有输入时发送请求，避免初次渲染就显示错误信息
+        if send_btn:
+            if not user_input:
+                st.warning("请输入学生信息后再发送。")
+            else:
+                st.session_state.conv.append({"role": "user", "text": user_input})
+                with st.spinner("正在生成画像..."):
+                    try:
+                        # 通过统一接口调用多智能体生成画像（动态，不使用硬编码）
+                        profile = scheduler.execute_task("profile", user_input)
+                    except Exception as e:
+                        profile = {"error": f"画像生成失败: {str(e)}"}
+                    st.session_state.profile = profile
 
             # 画像生成后保存到数据库：优先调用 db.save_profile
             try:
