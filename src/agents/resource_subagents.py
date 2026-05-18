@@ -119,17 +119,28 @@ class CodeAgent:
         return self.ai.generate_code(topic, language=language)
 
 
-class VideoAgent:
+class ReadingMaterialAgent:
+    """拓展阅读材料生成代理"""
     def __init__(self, ai_client: BaseAIClient):
         self.ai = ai_client
 
-    def run(self, topic: str) -> str:
-        # 调用 AI 客户端的结构化阅读材料接口，期望返回列表形式（每项为 dict）
+    def run(self, topic: str) -> list:
+        """为指定主题生成拓展阅读材料列表
+        
+        Args:
+            topic: 课程主题或知识点
+            
+        Returns:
+            结构化的阅读材料列表，每项包含：title, type, summary, difficulty, order, link
+        """
         try:
             return self.ai.generate_reading_material(topic)
         except Exception:
             # 回退为之前的文本提示（兼容旧的 AI 客户端实现）
             prompt = (
-                f"请为高校课程主题'{topic}'生成一份拓展阅读材料列表，返回中文文本或 Markdown。每条推荐应包含：1) 标题；2) 资源类型（书籍/论文/博客/视频/教程）；3) 不超过120字的摘要或为何推荐该资源；4) 难度标签（初级/中级/高级）；5) 推荐顺序或学习阶段；如有可用链接或 DOI 请一并提供。"
+                f"请为高校课程主题'{topic}'生成一份拓展阅读材料列表，返回中文文本或 Markdown。"
+                "每条推荐应包含：1) 标题；2) 资源类型（书籍/论文/博客/视频/教程）；"
+                "3) 不超过120字的摘要或为何推荐该资源；4) 难度标签（初级/中级/高级）；"
+                "5) 推荐顺序或学习阶段；如有可用链接或 DOI 请一并提供。"
             )
             return self.ai.generate_text(prompt)

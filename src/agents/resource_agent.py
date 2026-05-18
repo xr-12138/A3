@@ -9,7 +9,7 @@ from .resource_subagents import (
     MindmapAgent,
     QuestionBankAgent,
     CodeAgent,
-    VideoAgent,
+    ReadingMaterialAgent,
 )
 
 
@@ -21,7 +21,7 @@ class ResourceAgent:
         self.mind = MindmapAgent(ai_client)
         self.qbank = QuestionBankAgent(ai_client)
         self.code = CodeAgent(ai_client)
-        self.video = VideoAgent(ai_client)
+        self.reading = ReadingMaterialAgent(ai_client)
 
     def run(self, topic: str) -> Dict[str, Any]:
         return {
@@ -29,5 +29,5 @@ class ResourceAgent:
             "mindmap": self.mind.run(topic),
             "question_bank": self.qbank.run(topic),
             "code": self.code.run(topic),
-            "reading_material": self.video.run(topic),
+            "reading_material": self.reading.run(topic),
         }
