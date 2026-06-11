@@ -11,7 +11,7 @@ class BaseAIClient(ABC):
     """
 
     @abstractmethod
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, system_msg: str | None = None) -> str:
         """生成文本响应（可为纯文本、Markdown 或可解析为 JSON 的字符串）。"""
         raise NotImplementedError()
 
@@ -34,22 +34,7 @@ class BaseAIClient(ABC):
     def generate_reading_material(self, topic: str, num: int = 5) -> List:
         """生成拓展阅读材料列表，返回可序列化的列表，每项应包含 title/type/summary/difficulty/order/link 等字段。"""
         raise NotImplementedError()
-# src/api/base.py（统一接口）
-class BaseAIClient:
-    def generate(self, prompt):
-        raise NotImplementedError
 
-# src/api/mock_client.py（临时实现）
-class MockClient(BaseAIClient):
-    def generate(self, prompt):
-        return "模拟回答"
 
-# src/api/xfyun_api.py（后续真实实现）
-class XFYunClient(BaseAIClient):
-    def generate(self, prompt):
-        # 调用真实讯飞API
-        pass
-
-# 其他代码只依赖 BaseAIClient，不关心具体实现
 def some_function(ai_client: BaseAIClient):
-    result = ai_client.generate("问题")
+    result = ai_client.generate_text("问题")

@@ -74,10 +74,38 @@ def sidebar_nav() -> str:
         return st.session_state.get('selected_page', pages[0])
 
 
+def _is_error_payload(value: object) -> bool:
+    """Return True when the agent returned the structured error dict from
+    :mod:`src.api.openai_client` instead of real content.
+    """
+    return isinstance(value, dict) and value.get("_ai_error") is True
+
+
 def get_runtime_objects():
-    """从 session_state 获取或创建 ai、scheduler、db 等运行时对象"""
+    """从 session_state 获取或创建 ai、scheduler、db 等运行时对象。
+
+    The AI client returned by :func:`get_ai_client` is always the real one
+    backed by ``OPENAI_API_KEY`` / ``OPENAI_API_URL`` from ``config/.env``.
+    If those are missing or the remote is unreachable, API calls produce
+    ``[AI错误: ...]`` text or ``{"_ai_error": True, ...}`` dict payloads
+    instead of silently emitting sample content.
+    """
     if "ai" not in st.session_state:
         st.session_state.ai = get_ai_client()
+        client = st.session_state.ai
+        configured = bool(getattr(client, "api_key", "")) and bool(
+            getattr(client, "api_url", "")
+        )
+        if configured:
+            st.info(
+                f"已初始化 AI 客户端: URL={getattr(client, 'api_url', '')}, "
+                f"Model={getattr(client, 'model', '')}"
+            )
+        else:
+            st.warning(
+                "未检测到 OPENAI_API_KEY/OPENAI_API_URL。所有 AI 调用将返回连接错误，"
+                "请编辑 config/.env 后重试。"
+            )
 
     if "scheduler" not in st.session_state:
         st.session_state.scheduler = MultiAgentScheduler(st.session_state.ai)
@@ -188,10 +216,15 @@ def render_profile_page():
         profile = st.session_state.profile
         def render_profile_card(profile_obj):
             st.markdown('<div class="card"><h3>📊 学生画像（结构化展示）</h3>', unsafe_allow_html=True)
-            # 如果是字典，展示为表格 + 可展开详情
+            if _is_error_payload(profile_obj):
+                st.error(
+                    f"画像生成失败 [{profile_obj.get('error_kind', 'unknown')}]: "
+                    f"{profile_obj.get('detail', profile_obj)}"
+                )
+                st.markdown('</div>', unsafe_allow_html=True)
+                return
             try:
                 if isinstance(profile_obj, dict):
-                    # 使用列来展示画像信息
                     cols = st.columns(2)
                     idx = 0
                     for k, v in profile_obj.items():
@@ -204,7 +237,6 @@ def render_profile_page():
                                 st.markdown(f"{v}")
                         idx += 1
                 else:
-                    # 列表或其他类型，直接显示
                     st.json(profile_obj)
             except Exception:
                 st.markdown(str(profile_obj))
@@ -257,13 +289,38 @@ def render_resource_page():
                         resources = {"error": f"资源生成失败: {str(e)}"}
 
                 if not resources:
-                    st.error("资源生成失败或返回为空")
+                    st.error("资源生成失败或返回为空。请检查 config/.env 中的 OPENAI_API_KEY / OPENAI_API_URL 并重试。")
+                elif _is_error_payload(resources):
+                    st.error(
+                        f"资源生成失败 [{resources.get('error_kind', 'unknown')}]: "
+                        f"{resources.get('detail', resources)}"
+                    )
                 else:
                     st.markdown('<div class="card"><h3>🎯 生成结果</h3>', unsafe_allow_html=True)
                     content = resources.get(rtype) if isinstance(resources, dict) else None
+                    if _is_error_payload(content):
+                        st.error(
+                            f"{rtype} 生成失败 [{content.get('error_kind', 'unknown')}]: "
+                            f"{content.get('detail', content)}"
+                        )
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        try:
+                            user_id = f"user_{abs(hash(course + knowledge_point)) % 100000}"
+                            if isinstance(resources, dict):
+                                for k, v in resources.items():
+                                    rid = f"{knowledge_point}_{k}"
+                                    content_text = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+                                    if hasattr(db, "add_resource"):
+                                        db.add_resource(user_id=user_id, resource_id=rid, resource_type=k, content=content_text, metadata={"course": course, "kp": knowledge_point})
+                        except Exception:
+                            pass
+                        return
                     if content is None:
                         st.info("未找到指定类型，展示完整生成结果：")
                         st.json(resources)
+                    elif isinstance(content, str) and content.startswith("[AI错误]"):
+                        # Plain-text error from generate_text() — surface it clearly
+                        st.error(f"{rtype} 生成失败: {content}")
                     else:
                         # 专门处理 mindmap：如果是结构化 dict，则渲染为图片并预览
                         if rtype == "mindmap":
@@ -456,7 +513,12 @@ def render_path_page():
             try:
                 plan = scheduler.execute_task("path", profile)
                 if not plan:
-                    st.error("学习路径生成失败或返回为空")
+                    st.error("学习路径生成失败或返回为空。请检查 config/.env 中的 API 配置。")
+                elif _is_error_payload(plan):
+                    st.error(
+                        f"学习路径生成失败 [{plan.get('error_kind', 'unknown')}]: "
+                        f"{plan.get('detail', plan)}"
+                    )
                 else:
                     st.markdown('<div class="card"><h3>📝 生成的学习路径</h3>', unsafe_allow_html=True)
                     # 动态生成学习路径文本
@@ -601,6 +663,13 @@ def render_tutor_page():
         with st.spinner("🤖 AI 正在生成回复..."):
             try:
                 resp = scheduler.execute_task("tutoring", q)
+                # Structured error payload from the real API client → red banner
+                if isinstance(resp, dict) and resp.get("_ai_error") is True:
+                    st.error(
+                        f"AI 调用失败 [{resp.get('error_kind', 'unknown')}]: "
+                        f"{resp.get('detail', resp)}"
+                    )
+                    st.rerun()
                 # 如果是 dict 且包含 answer 字段，提取并作为 Markdown 文本渲染；否则按字符串处理
                 if isinstance(resp, dict) and "answer" in resp:
                     text = resp.get("answer")

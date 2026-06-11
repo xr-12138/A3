@@ -3,7 +3,7 @@ import json
 import re
 
 class MockClient(BaseAIClient):
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, system_msg: str | None = None) -> str:
         """
         智能模拟大模型的理解能力，生成真正个性化的学习画像
         不需要关键词硬编码，能自动提取语义信息

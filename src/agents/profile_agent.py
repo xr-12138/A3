@@ -28,9 +28,13 @@ class ProfileAgent:
             "输入文本：\n" + prompt
         )
         text = self.ai.generate_text(instruction)
+        # If the AI client surfaced an error (missing key, network failure,
+        # auth failure, etc.) propagate it with the standard marker so the
+        # frontend renders a red error banner instead of a "profile card".
+        if isinstance(text, str) and text.startswith("[AI错误]"):
+            return {"_ai_error": True, "error_kind": "api_error", "detail": text}
         try:
             data = json.loads(text)
             return data
         except Exception:
-            # 返回原始文本封装
             return {"raw": text}
