@@ -16,10 +16,8 @@ dist/
 
 # IDEs
 .vscode/
-.idea/
 
 # OS files
-.DS_Store
 
 # Env files (ignore actual secret files only)
 config/.env
