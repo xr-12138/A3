@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 import requests
 
 from .base import BaseAIClient
+import re
 
 
 # Error kind tags used to produce deterministic, user-facing messages.
@@ -220,6 +221,25 @@ class OpenAIClient(BaseAIClient):
         except Exception as exc:  # pragma: no cover - defensive
             return self._format_error(ERR_PARSE, f"解析响应时异常: {exc}")
 
+    def _extract_json_like(self, text: str) -> str | None:
+        """尝试从任意文本中提取可解析的 JSON 块（对象或数组）。
+
+        返回可直接传入 json.loads 的子串，或 None。
+        """
+        if not isinstance(text, str):
+            return None
+        s = text.strip()
+        # 直接是 JSON 的常见情况
+        if s.startswith('{') or s.startswith('['):
+            return s
+
+        # 尝试用正则提取最外层的 JSON 对象或数组（贪婪匹配）
+        m = re.search(r"(\{.*\}|\[.*\])", text, flags=re.S)
+        if m:
+            return m.group(1)
+
+        return None
+
     def generate_text(self, prompt: str, system_msg: str | None = None) -> str:
         default_sys = os.getenv('OPENAI_SYSTEM_MESSAGE') or self._cfg.get('OPENAI_SYSTEM_MESSAGE')
         system_msg_to_use = (
@@ -254,11 +274,22 @@ class OpenAIClient(BaseAIClient):
             return self._build_error_dict(self._extract_error_kind(text), text, topic=topic)
 
         parsed: Any = None
-        if isinstance(text, str) and text.strip().startswith('{'):
-            try:
-                parsed = json.loads(text)
-            except Exception:
-                parsed = None
+        # 宽容解析：尝试提取 JSON 块，无论文本前后是否包含额外说明
+        candidate = None
+        if isinstance(text, str):
+            candidate = self._extract_json_like(text)
+            if candidate is not None:
+                # 兼容单引号 JSON 风格的情况，尝试替换为双引号（谨慎处理）
+                try:
+                    parsed = json.loads(candidate)
+                except Exception:
+                    # 轻度修正：将单引号包裹的键/字符串替换为双引号后再试一次
+                    try:
+                        alt = candidate.replace("\"", "\\\"")
+                        alt = candidate.replace("'", '"')
+                        parsed = json.loads(alt)
+                    except Exception:
+                        parsed = None
         if parsed is None:
             return self._build_error_dict(
                 ERR_PARSE,
@@ -288,7 +319,15 @@ class OpenAIClient(BaseAIClient):
         if self._is_error_text(text):
             return [self._build_error_dict(self._extract_error_kind(text), text, topic=topic)]
         try:
-            parsed = json.loads(text) if isinstance(text, str) else text
+            parsed = None
+            if isinstance(text, str):
+                candidate = self._extract_json_like(text)
+                if candidate is not None:
+                    parsed = json.loads(candidate)
+                else:
+                    parsed = json.loads(text)
+            else:
+                parsed = text
         except Exception:
             return [
                 self._build_error_dict(
@@ -316,7 +355,15 @@ class OpenAIClient(BaseAIClient):
         if self._is_error_text(text):
             return [self._build_error_dict(self._extract_error_kind(text), text, topic=topic)]
         try:
-            parsed = json.loads(text) if isinstance(text, str) else text
+            parsed = None
+            if isinstance(text, str):
+                candidate = self._extract_json_like(text)
+                if candidate is not None:
+                    parsed = json.loads(candidate)
+                else:
+                    parsed = json.loads(text)
+            else:
+                parsed = text
         except Exception:
             return [
                 self._build_error_dict(
