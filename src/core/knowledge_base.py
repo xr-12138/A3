@@ -5,35 +5,82 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# 知识库目录
+# 知识库根目录（每门课程一个子目录）
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 KB_DIR = BASE_DIR / "data" / "course_kb"
 
-class KnowledgeBase:
-    """课程知识库管理：读取结构化课程数据，为AI生成提供上下文"""
 
-    def __init__(self, kb_path: Optional[str] = None):
-        self.kb_path = Path(kb_path) if kb_path else KB_DIR
+def _safe_load_json(path: Path) -> Optional[Dict[str, Any]]:
+    """Safely load a JSON file, returning None on failure."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def list_courses(kb_path: Optional[Path] = None) -> List[Dict[str, str]]:
+    """扫描知识库目录，返回所有可用课程列表（每门课程对应一个子目录，
+    子目录下需要存在 course_manifest.json）。
+
+    返回列表元素形如:
+        {"id": "<subdir_name>", "course_name": "...", "course_name_en": "..."}
+    """
+    root = Path(kb_path) if kb_path else KB_DIR
+    courses: List[Dict[str, str]] = []
+    if not root.exists():
+        return courses
+    for entry in sorted(root.iterdir()):
+        if entry.is_dir():
+            manifest_file = entry / "course_manifest.json"
+            if manifest_file.exists():
+                data = _safe_load_json(manifest_file)
+                if data:
+                    courses.append({
+                        "id": entry.name,
+                        "course_name": data.get("course_name", entry.name),
+                        "course_name_en": data.get("course_name_en", ""),
+                    })
+    return courses
+
+
+class KnowledgeBase:
+    """课程知识库管理：读取结构化课程数据，为AI生成提供上下文。
+
+    支持多课程：通过 ``course_id`` 指定课程子目录（子目录下需要包含
+    ``course_manifest.json`` 以及对应的章节 JSON 文件）。
+    """
+
+    def __init__(self, course_id: str = "data_structures", kb_path: Optional[str] = None):
+        self.course_id = course_id
+        self.root_path = Path(kb_path) if kb_path else KB_DIR
+        self.course_dir = self.root_path / course_id
         self._manifest: Optional[Dict[str, Any]] = None
         self._chapters: Dict[str, Dict[str, Any]] = {}
         self._load_all()
 
     def _load_all(self) -> None:
-        # 加载课程清单
-        manifest_file = self.kb_path / "course_manifest.json"
+        manifest_file = self.course_dir / "course_manifest.json"
         if manifest_file.exists():
             with open(manifest_file, "r", encoding="utf-8") as f:
                 self._manifest = json.load(f)
         else:
-            self._manifest = {
-                "course_name": "数据结构",
-                "chapters": []
-            }
-        # 加载所有章节
+            # 尝试使用旧的扁平化结构（向前兼容）
+            fallback = self.root_path / "course_manifest.json"
+            if fallback.exists():
+                self.course_dir = self.root_path
+                with open(fallback, "r", encoding="utf-8") as f:
+                    self._manifest = json.load(f)
+            else:
+                self._manifest = {
+                    "course_name": "数据结构",
+                    "chapters": []
+                }
+
         for ch in self._manifest.get("chapters", []):
             fname = ch.get("file")
             if fname:
-                fpath = self.kb_path / fname
+                fpath = self.course_dir / fname
                 if fpath.exists():
                     try:
                         with open(fpath, "r", encoding="utf-8") as f:
@@ -43,15 +90,13 @@ class KnowledgeBase:
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        """返回课程清单"""
         return self._manifest or {"course_name": "数据结构", "chapters": []}
 
     @property
     def course_name(self) -> str:
-        return self.manifest.get("course_name", "数据结构")
+        return self.manifest.get("course_name", self.course_id)
 
     def list_chapters(self) -> List[Dict[str, Any]]:
-        """返回所有章节的简要信息列表"""
         result = []
         for ch in self.manifest.get("chapters", []):
             result.append({
@@ -64,11 +109,8 @@ class KnowledgeBase:
         return result
 
     def get_chapter(self, chapter_id_or_file: str) -> Optional[Dict[str, Any]]:
-        """根据ID或文件名获取完整章节内容"""
-        # 先尝试以文件名查找
         if chapter_id_or_file in self._chapters:
             return self._chapters[chapter_id_or_file]
-        # 再尝试以ID映射查找
         for ch in self.manifest.get("chapters", []):
             if ch.get("id") == chapter_id_or_file:
                 fname = ch.get("file", "")
@@ -77,7 +119,6 @@ class KnowledgeBase:
         return None
 
     def search_knowledge_point(self, keyword: str) -> List[Dict[str, Any]]:
-        """根据关键词搜索知识点，返回匹配的知识点列表"""
         matches = []
         keyword_low = keyword.lower()
         for ch_id, chapter in self._chapters.items():
@@ -109,7 +150,6 @@ class KnowledgeBase:
         return matches
 
     def get_questions(self, chapter_id_or_file: Optional[str] = None) -> List[Dict[str, Any]]:
-        """获取章节的练习题，不指定则获取所有章节"""
         qs = []
         target_files = set()
         if chapter_id_or_file:
@@ -134,7 +174,6 @@ class KnowledgeBase:
         return qs
 
     def get_code_examples(self, chapter_id_or_file: Optional[str] = None) -> List[Dict[str, Any]]:
-        """获取章节的代码示例"""
         codes = []
         target_files = set()
         if chapter_id_or_file:
@@ -159,7 +198,6 @@ class KnowledgeBase:
         return codes
 
     def get_reading_materials(self, chapter_id_or_file: Optional[str] = None) -> List[Dict[str, Any]]:
-        """获取章节的拓展阅读材料"""
         materials = []
         target_files = set()
         if chapter_id_or_file:
@@ -184,7 +222,6 @@ class KnowledgeBase:
         return materials
 
     def get_course_overview(self) -> str:
-        """生成课程概览文本"""
         manifest = self.manifest
         chapters = manifest.get("chapters", [])
         lines = []
@@ -207,17 +244,15 @@ class KnowledgeBase:
         return "\n".join(lines)
 
     def build_prompt_context(self, topic: str, max_chars: int = 2000) -> str:
-        """为给定主题构建参考知识库的prompt上下文"""
         lines = []
         lines.append("【知识库参考内容】")
         lines.append(f"课程：{self.course_name}")
         lines.append("")
-        # 搜索相关知识点
         matches = self.search_knowledge_point(topic)
         if matches:
             lines.append(f"找到 {len(matches)} 个相关知识点：")
             lines.append("-" * 40)
-            for m in matches[:5]:  # 最多取5个
+            for m in matches[:5]:
                 if m.get("type") == "knowledge_point":
                     lines.append(f"知识点：{m.get('kp_name', '')}（{m.get('chapter_title', '')}，难度：{m.get('difficulty', '')}）")
                     lines.append(f"内容：{m.get('content', '')}")
@@ -226,7 +261,6 @@ class KnowledgeBase:
                     lines.append(f"内容：{m.get('content', '')}")
                 lines.append("-" * 40)
         else:
-            # 没有精确匹配时，给整体课程概述
             lines.append(f"课程《{self.course_name}》包含以下章节：")
             for i, ch in enumerate(self.manifest.get("chapters", []), 1):
                 lines.append(f"  {i}. {ch.get('title', '')}")
@@ -236,29 +270,33 @@ class KnowledgeBase:
         return text
 
 
-# 全局单例
-_instance: Optional[KnowledgeBase] = None
+# 按课程 id 缓存实例，避免反复读取磁盘
+_course_cache: Dict[str, KnowledgeBase] = {}
 
 
-def get_knowledge_base() -> KnowledgeBase:
-    """获取知识库单例"""
-    global _instance
-    if _instance is None:
-        _instance = KnowledgeBase()
-    return _instance
+def get_knowledge_base(course_id: Optional[str] = None) -> KnowledgeBase:
+    """获取指定课程的知识库实例；未指定时默认使用第一门可用课程。"""
+    courses = list_courses()
+    if not course_id:
+        if courses:
+            course_id = courses[0]["id"]
+        else:
+            course_id = "data_structures"
+    if course_id not in _course_cache:
+        _course_cache[course_id] = KnowledgeBase(course_id=course_id)
+    return _course_cache[course_id]
+
+
+def reset_cache() -> None:
+    _course_cache.clear()
 
 
 if __name__ == "__main__":
-    # 快速测试
-    kb = get_knowledge_base()
-    print("课程名称:", kb.course_name)
-    print("章节数:", len(kb.list_chapters()))
-    # 搜索测试
-    results = kb.search_knowledge_point("二叉树")
-    print(f"搜索'二叉树'，找到 {len(results)} 个结果")
-    for r in results[:2]:
-        print(" -", r.get("kp_name", r.get("chapter_title", "")))
-    # 生成prompt
-    ctx = kb.build_prompt_context("二叉树遍历")
-    print("\n=== Prompt Context ===")
-    print(ctx)
+    courses = list_courses()
+    print(f"共发现 {len(courses)} 门课程：")
+    for c in courses:
+        print(f"  - {c['id']}: {c['course_name']} ({c['course_name_en']})")
+        kb = get_knowledge_base(c["id"])
+        print(f"    章节数: {len(kb.list_chapters())}")
+        results = kb.search_knowledge_point("函数")
+        print(f"    搜索'函数'，找到 {len(results)} 个结果")

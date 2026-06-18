@@ -16,7 +16,7 @@ from src.api.ai_client import get_ai_client
 from src.agents.multi_agent_scheduler import MultiAgentScheduler
 from src.core.database import Database
 from src.core.resource_generator import ResourceGenerator
-from src.core.knowledge_base import get_knowledge_base
+from src.core.knowledge_base import get_knowledge_base, list_courses
 
 # 数据目录（用于保存生成文件）
 BASE_DIR = root_dir
@@ -73,6 +73,16 @@ def sidebar_nav() -> str:
                 st.rerun()
         
         return st.session_state.get('selected_page', pages[0])
+
+
+def get_current_course_id():
+    """从 session_state 读取当前选中的课程 ID，供所有页面使用"""
+    return st.session_state.get("current_course_id") or None
+
+
+def get_kb_for_current_course():
+    """按当前侧边栏选中的课程加载知识库实例"""
+    return get_knowledge_base(get_current_course_id())
 
 
 def _is_error_payload(value: object) -> bool:
@@ -268,7 +278,7 @@ def render_resource_page():
     st.markdown('<div class="resource-header"><h1>📦 多模态资源生成</h1><p>系统已载入「数据结构」完整课程知识库 · 多智能体结合课程知识生成专属学习资源</p></div>', unsafe_allow_html=True)
 
     with st.container():
-        kb = get_knowledge_base()
+        kb = get_kb_for_current_course()
         kb_course = kb.course_name
         manifest = kb.manifest
         chapters = manifest.get("chapters", [])
@@ -716,7 +726,38 @@ def render_tutor_page():
 
 def render_kb_page():
     """课程知识库浏览页面：展示课程章节、知识点、代码示例、练习题、阅读材料"""
-    kb = get_knowledge_base()
+    # ---- 课程选择器（放在页面顶部）----
+    available_courses = list_courses()
+    if not available_courses:
+        st.warning("未发现课程知识库，请在 data/course_kb/ 目录下添加课程数据。")
+        return
+
+    course_options = [(c["id"], f"{c['course_name']} ({c['course_name_en']})") for c in available_courses]
+    default_idx = 0
+    if "current_course_id" in st.session_state and st.session_state["current_course_id"]:
+        for i, c in enumerate(available_courses):
+            if c["id"] == st.session_state["current_course_id"]:
+                default_idx = i
+                break
+
+    col_tip, col_select = st.columns([3, 2])
+    with col_tip:
+        st.markdown("")
+        st.markdown("")
+        st.markdown("""<div style="font-size:13px;color:#555;font-weight:600;">👇 在下方选择一门课程来浏览对应的知识库</div>""", unsafe_allow_html=True)
+    with col_select:
+        selected_idx = st.selectbox(
+            "选择课程",
+            options=range(len(course_options)),
+            format_func=lambda i: course_options[i][1],
+            index=default_idx,
+            key="course_selector_kb_page",
+            label_visibility="collapsed",
+        )
+        st.session_state["current_course_id"] = course_options[selected_idx][0]
+
+    # 根据当前选中的课程加载知识库
+    kb = get_kb_for_current_course()
     manifest = kb.manifest
 
     st.markdown("""

@@ -1,0 +1,69 @@
+{
+  "chapter_id": "ch04",
+  "title": "不定积分",
+  "summary": "本章引入原函数与不定积分的概念，给出基本积分表，然后系统讲授三类基本积分方法：第一类换元法（凑微分法）、第二类换元法与分部积分法。最后讨论有理函数的积分以及可化为有理函数的积分问题。",
+  "key_points": [
+    {
+      "kp_id": "ch04_kp1",
+      "name": "不定积分的概念与性质",
+      "content": "**原函数**：若在区间 I 上，可导函数 F(x) 的导函数为 f(x)，即对任一 x ∈ I，都有 F'(x) = f(x)，则称 F(x) 为 f(x) 在区间 I 上的一个原函数。\n\n**原函数存在定理**：若 f(x) 在区间 I 上连续，则 f(x) 在 I 上必有原函数。\n\n**不定积分**：函数 f(x) 在区间 I 上的全体原函数 F(x) + C 称为 f(x) 的不定积分，记作\n\n∫ f(x) dx = F(x) + C\n\n其中 ∫ 称为积分号，f(x) 称为被积函数，x 称为积分变量，f(x)dx 称为被积表达式，C 称为积分常数。\n\n**基本性质**：\n1. ∫ [f(x) ± g(x)] dx = ∫ f(x) dx ± ∫ g(x) dx\n2. ∫ k·f(x) dx = k·∫ f(x) dx （k ≠ 0）\n3. d/dx ∫ f(x) dx = f(x)；∫ F'(x) dx = F(x) + C\n\n**基本积分表（核心）**：\n1. ∫ k dx = kx + C\n2. ∫ x^μ dx = x^(μ+1)/(μ+1) + C （μ ≠ -1）\n3. ∫ dx/x = ln|x| + C\n4. ∫ dx/(1+x²) = arctan x + C\n5. ∫ dx/√(1-x²) = arcsin x + C\n6. ∫ cos x dx = sin x + C\n7. ∫ sin x dx = -cos x + C\n8. ∫ sec²x dx = tan x + C\n9. ∫ csc²x dx = -cot x + C\n10. ∫ sec x tan x dx = sec x + C\n11. ∫ csc x cot x dx = -csc x + C\n12. ∫ eˣ dx = eˣ + C\n13. ∫ aˣ dx = aˣ/ln a + C\n\n*注：求导与求不定积分是互逆运算。*",
+      "difficulty": "基础",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch04_kp2",
+      "name": "第一类换元法（凑微分法）",
+      "content": "**第一类换元法**：设 ∫ f(u) du = F(u) + C，且 u = φ(x) 可导，则\n\n∫ f[φ(x)]·φ'(x) dx = ∫ f[φ(x)] dφ(x) = F[φ(x)] + C\n\n关键是将被积表达式通过代数/三角变形凑成 f[φ(x)]·φ'(x) dx 的形式。\n\n**常用的凑微分形式**：\n1. dx = (1/a)·d(ax + b)\n2. x dx = (1/2) d(x²)\n3. (1/√x) dx = 2 d(√x)\n4. (1/x²) dx = -d(1/x)\n5. (1/x) dx = d(ln|x|)\n6. eˣ dx = d(eˣ)\n7. aˣ dx = (1/ln a) d(aˣ)\n8. cos x dx = d(sin x)\n9. sin x dx = -d(cos x)\n10. sec²x dx = d(tan x)\n11. (1/√(1-x²)) dx = d(arcsin x)\n12. (1/(1+x²)) dx = d(arctan x)\n\n**典型示例**：\n∫ sin 2x dx = (1/2) ∫ sin 2x d(2x) = -(1/2) cos 2x + C\n∫ xe^(x²) dx = (1/2) ∫ e^(x²) d(x²) = (1/2) e^(x²) + C\n∫ tan x dx = ∫ (sin x/cos x) dx = -∫ d(cos x)/cos x = -ln|cos x| + C\n∫ dx/[x(1+2 ln x)] = (1/2) ∫ d(1+2 ln x)/(1+2 ln x) = (1/2) ln|1+2 ln x| + C",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch04_kp3",
+      "name": "第二类换元法",
+      "content": "**第二类换元法**：设 x = ψ(t) 单调、可导且 ψ'(t) ≠ 0，又设 f[ψ(t)]·ψ'(t) 具有原函数 F(t)，则\n\n∫ f(x) dx = ∫ f[ψ(t)]·ψ'(t) dt = F(t) + C = F[ψ⁻¹(x)] + C\n\n与第一类换元法的区别：这里令 x = ψ(t) 是为了消去困难因子（如根号）。\n\n**主要代换类型**：\n\n1. **三角代换**（用于消去 √(a²-x²)、√(x²+a²)、√(x²-a²) 等）：\n   - 含 √(a²-x²)：令 x = a sin θ, θ ∈ (-π/2, π/2)，则 √(a²-x²) = a cos θ\n   - 含 √(x²+a²)：令 x = a tan θ, θ ∈ (-π/2, π/2)，则 √(x²+a²) = a sec θ\n   - 含 √(x²-a²)：令 x = a sec θ, θ ∈ (0, π/2)，则 √(x²-a²) = a tan θ\n\n2. **根式代换**：\n   - 含 ⁿ√(ax+b)：令 t = ⁿ√(ax+b)，则 x = (tⁿ - b)/a\n   - 含不同次根式：令 t = 最小公倍数次根\n\n3. **倒代换**：当被积函数分母次数较高时，令 x = 1/t，常常奏效。\n\n4. **万能代换**（对含 sin x, cos x 的有理式）：令 t = tan(x/2)，则\n   sin x = 2t/(1+t²), cos x = (1-t²)/(1+t²), dx = 2dt/(1+t²)\n\n**典型示例**：\n∫ √(a²-x²) dx：令 x = a sin θ，得 ∫ a² cos²θ dθ = a²/2 (θ + (sin 2θ)/2) + C\n代回得 (x/2)√(a²-x²) + (a²/2) arcsin(x/a) + C",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch04_kp4",
+      "name": "分部积分法",
+      "content": "**分部积分法（Integration by Parts）**：\n由 d(uv) = v du + u dv，两边积分得\n\n∫ u dv = uv - ∫ v du\n\n这就是分部积分公式。\n\n**适用类型**：当被积函数是两类不同函数的乘积时，如 x^n·e^(ax), x^n·sin(ax), x^n·ln x, x^n·arctan x, e^(ax)·sin(bx) 等。\n\n**选择 u 和 dv 的优先级口诀（LIATE）**：\n优先选 u：L（对数）> I（反三角）> A（代数）> T（三角）> E（指数）\n换言之，选 u 的优先级：反三角函数 > 对数函数 > 幂函数 > 三角函数 > 指数函数\n\n**典型示例**：\n1. ∫ x·eˣ dx：令 u = x, dv = eˣ dx，则 du = dx, v = eˣ\n   ∫ x·eˣ dx = x·eˣ - ∫ eˣ dx = x·eˣ - eˣ + C = (x-1)eˣ + C\n\n2. ∫ x·sin x dx：令 u = x, dv = sin x dx\n   = -x cos x + ∫ cos x dx = -x cos x + sin x + C\n\n3. ∫ x·ln x dx：令 u = ln x, dv = x dx\n   = (x²/2) ln x - ∫ (x²/2)(1/x) dx = (x²/2) ln x - x²/4 + C\n\n4. ∫ arcsin x dx：令 u = arcsin x, dv = dx\n   = x arcsin x - ∫ x/√(1-x²) dx = x arcsin x + √(1-x²) + C\n\n5. ∫ eˣ sin x dx：需两次分部积分并解方程（循环型）。\n\n**推广（分部积分的反复应用）**：对 ∫ xⁿ e^(ax) dx 等需要多次分部积分的情形，可建立递推公式。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch04_kp5",
+      "name": "有理函数的积分",
+      "content": "**有理函数**：两个多项式之商 R(x) = P(x)/Q(x)。当分子次数 < 分母次数时为真分式，否则为假分式（可通过多项式除法化为多项式+真分式）。\n\n**真分式的部分分式分解**：\n根据代数学知识，真分式 R(x) = P(x)/Q(x) 可唯一分解为以下四类最简分式之和：\n1. A/(x - a)  （一次单因子）\n2. A/(x - a)ᵏ （一次重因子，k = 1, 2, 3, ...）\n3. (Bx + C)/(x² + px + q)  （二次不可约单因子，p² - 4q < 0）\n4. (Bx + C)/(x² + px + q)ᵏ  （二次不可约重因子）\n\n**待定系数法**：将 R(x) 写成上述最简分式之和（带待定系数 A, B, C），通分后比较分子系数，解出所有待定系数。\n\n**四类最简分式的积分方法**：\n1. ∫ A/(x-a) dx = A·ln|x-a| + C\n2. ∫ A/(x-a)ᵏ dx = A/(1-k) · (x-a)^(1-k) + C （k > 1）\n3. ∫ (Bx+C)/(x²+px+q) dx：\n   - 分子写成 B(x+p/2) + (C - Bp/2)\n   - 积分拆为：(B/2)∫ d(x²+px+q)/(x²+px+q) + (C - Bp/2)∫ dx/[(x+p/2)² + (q-p²/4)]\n   - 分别得对数和反正切形式\n4. 重因子的情形需要反复降次，使用递推公式。\n\n**结论**：一切有理函数的原函数都是初等函数。\n\n**可化为有理函数的积分**：\n1. 含 sin x, cos x 的三角有理式 R(sin x, cos x)：万能代换 t = tan(x/2)\n2. 含 √(ax+b) 或多个根式的积分：令 t = n 次根\n3. 某些通过代换可化为有理式的超越函数积分",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "数值积分（梯形法与辛普森法）",
+      "language": "python",
+      "code": "import math\n\ndef trapezoidal(f, a, b, n=1000):\n    \"\"\"梯形法：∫_a^b f(x) dx ≈ (h/2)[f(x_0) + 2Σf(x_i) + f(x_n)]\n    h = (b-a)/n\"\"\"\n    h = (b - a) / n\n    s = 0.5 * (f(a) + f(b))\n    for i in range(1, n):\n        s += f(a + i * h)\n    return h * s\n\ndef simpson(f, a, b, n=1000):\n    \"\"\"辛普森法（抛物线法）：n 必须为偶数。\n    ∫_a^b f(x) dx ≈ (h/3)[f(x_0) + 4Σf(x_{2i-1}) + 2Σf(x_{2i}) + f(x_n)]\"\"\"\n    if n % 2 != 0:\n        n += 1\n    h = (b - a) / n\n    s = f(a) + f(b)\n    for i in range(1, n):\n        x = a + i * h\n        if i % 2 == 0:\n            s += 2 * f(x)\n        else:\n            s += 4 * f(x)\n    return h * s / 3.0\n\n# 例：∫_0^1 e^x dx = e - 1 ≈ 1.71828\nf = math.exp\na, b = 0, 1\ntrue_val = math.e - 1\n\nprint(f\"∫_0^1 e^x dx 精确值 = {true_val:.8f}\")\nfor n in [10, 100, 1000]:\n    trap = trapezoidal(f, a, b, n)\n    simp = simpson(f, a, b, n)\n    print(f\"  n = {n:4d}: 梯形法 = {trap:.8f} (误差 {abs(trap-true_val):.2e}), \"\n          f\"辛普森法 = {simp:.8f} (误差 {abs(simp-true_val):.2e})\")\n\n# 例：∫_0^π sin x dx = 2\nprint(f\"\\n∫_0^π sin x dx 精确值 = 2.0\")\nfor n in [10, 20, 100]:\n    simp = simpson(math.sin, 0, math.pi, n)\n    print(f\"  n = {n:3d}: 辛普森法 = {simp:.8f} (误差 {abs(simp-2):.2e})\")\n",
+      "description": "演示梯形法和辛普森法两种经典数值积分方法。辛普森法的收敛速度明显优于梯形法。"
+    },
+    {
+      "title": "符号积分与符号求导（使用 sympy）",
+      "language": "python",
+      "code": "try:\n    from sympy import symbols, diff, integrate, sin, cos, exp, ln, simplify, Rational, pi\n    \n    x = symbols('x')\n    \n    # 符号求导\n    print(\"=== 符号求导 ===\")\n    exprs = [x**5 + 2*x**3 - x, sin(x**2), exp(x)*cos(x), ln(x**2 + 1)]\n    for expr in exprs:\n        derivative = diff(expr, x)\n        print(f\"d/dx ({expr}) = {derivative}\")\n    \n    # 符号积分\n    print(\"\\n=== 符号积分（不定积分） ===\")\n    int_exprs = [x**2 * exp(x), sin(x)**2, x / (x**2 + 1), 1/(x**2 + 1)]\n    for expr in int_exprs:\n        integral = integrate(expr, x)\n        print(f\"∫ ({expr}) dx = {integral} + C\")\n    \n    # 定积分\n    print(\"\\n=== 符号积分（定积分） ===\")\n    print(f\"∫_0^π sin x dx = {integrate(sin(x), (x, 0, pi))}\")\n    print(f\"∫_0^1 x^2 dx = {integrate(x**2, (x, 0, 1))}\")\n    print(f\"∫_0^∞ e^(-x^2) dx = {integrate(exp(-x**2), (x, 0, float('inf')))}\")\n    \nexcept ImportError:\n    print(\"未安装 sympy，跳过符号运算演示。可执行 'pip install sympy' 安装。\")\n",
+      "description": "使用 Python 符号计算库 sympy 进行解析求导和积分。这相当于用计算机实现微积分的符号运算法则。"
+    }
+  ],
+  "questions": [
+    {"q": "求 ∫ (2x³ - 5x + 3) dx。", "a": "∫ (2x³ - 5x + 3) dx = 2∫ x³ dx - 5∫ x dx + 3∫ dx\n= 2·(x⁴/4) - 5·(x²/2) + 3x + C = x⁴/2 - (5/2)x² + 3x + C", "type": "计算题"},
+    {"q": "求 ∫ sin²x dx。", "a": "使用降幂公式 sin²x = (1 - cos 2x)/2：\n∫ sin²x dx = ∫ (1 - cos 2x)/2 dx = (1/2)∫ dx - (1/2)∫ cos 2x dx\n= x/2 - (1/4) sin 2x + C", "type": "计算题"},
+    {"q": "求 ∫ x·e^(2x) dx。", "a": "使用分部积分法：\n令 u = x, dv = e^(2x) dx，则 du = dx, v = (1/2)e^(2x)\n\n∫ x·e^(2x) dx = (x/2)e^(2x) - ∫ (1/2)e^(2x) dx\n= (x/2)e^(2x) - (1/4)e^(2x) + C\n= ((2x - 1)/4) e^(2x) + C", "type": "计算题"},
+    {"q": "求 ∫ x²·ln x dx。", "a": "使用分部积分法：\n令 u = ln x, dv = x² dx，则 du = (1/x) dx, v = x³/3\n\n∫ x²·ln x dx = (x³/3)·ln x - ∫ (x³/3)(1/x) dx\n= (x³/3)·ln x - (1/3)∫ x² dx\n= (x³/3)·ln x - x³/9 + C\n= (x³/9)(3 ln x - 1) + C", "type": "计算题"},
+    {"q": "求 ∫ dx/√(x² + a²)。", "a": "使用三角代换，令 x = a tan θ，则 dx = a sec²θ dθ，\n√(x² + a²) = √(a² tan²θ + a²) = a sec θ\n\n∫ dx/√(x²+a²) = ∫ (a sec²θ dθ)/(a sec θ) = ∫ sec θ dθ\n= ln|sec θ + tan θ| + C₁\n= ln|tan θ + √(1 + tan²θ)| + C₁\n= ln|(x/a) + √(x²/a² + 1)| + C₁\n= ln|x + √(x²+a²)| - ln a + C₁\n= ln|x + √(x²+a²)| + C （其中 C = C₁ - ln a）", "type": "计算题"},
+    {"q": "求 ∫ dx/[x(x²+1)]。", "a": "使用部分分式分解：\n设 1/[x(x²+1)] = A/x + (Bx+C)/(x²+1)\n通分：1 = A(x²+1) + (Bx+C)x = (A+B)x² + Cx + A\n比较系数：A = 1, C = 0, A+B = 0 ⇒ B = -1\n\n故 1/[x(x²+1)] = 1/x - x/(x²+1)\n\n∫ dx/[x(x²+1)] = ∫ dx/x - ∫ x/(x²+1) dx\n= ln|x| - (1/2) ln(x²+1) + C", "type": "计算题"},
+    {"q": "求 ∫ arcsin x dx。", "a": "使用分部积分法：\n令 u = arcsin x, dv = dx，则 du = dx/√(1-x²), v = x\n\n∫ arcsin x dx = x arcsin x - ∫ x/√(1-x²) dx\n令 t = 1-x², dt = -2x dx，则 -∫ x/√(1-x²) dx = (1/2)∫ t^(-1/2) dt = √t + C\n\n故 ∫ arcsin x dx = x arcsin x + √(1-x²) + C", "type": "计算题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第4章 — 不定积分", "type": "教材", "difficulty": "初级", "summary": "介绍原函数、换元积分法、分部积分法及有理函数积分。", "why_recommend": "积分技巧需要大量练习，配合教材习题训练效果最好。"},
+    {"title": "Integrals — Wolfram MathWorld", "type": "在线资源", "difficulty": "高级", "summary": "提供积分理论与特殊函数积分的详细说明。", "why_recommend": "对积分理论感兴趣时的延伸阅读。"}
+  ]
+}

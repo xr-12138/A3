@@ -1,0 +1,76 @@
+{
+  "chapter_id": "ch05",
+  "title": "定积分及其应用",
+  "summary": "本章从曲边梯形面积与变力做功等实际问题抽象出定积分的定义（和式极限），讨论定积分的基本性质，通过微积分基本公式（牛顿-莱布尼茨公式）建立定积分与不定积分的联系，推广换元法与分部积分法到定积分，并讨论两类反常积分。最后以微元法思想系统介绍定积分在几何与物理中的应用。",
+  "key_points": [
+    {
+      "kp_id": "ch05_kp1",
+      "name": "定积分的概念与性质",
+      "content": "**定义（黎曼积分）**：设函数 f(x) 在 [a, b] 上有界，在 [a, b] 中任意插入 n-1 个分点 a = x₀ < x₁ < ... < xₙ = b，把 [a, b] 分成 n 个小区间 [xᵢ₋₁, xᵢ]，长度 Δxᵢ = xᵢ - xᵢ₋₁。在每个 [xᵢ₋₁, xᵢ] 上任取一点 ξᵢ，作和 S = Σ(i=1到n) f(ξᵢ)·Δxᵢ。记 λ = max{Δxᵢ}。若 ∃ I ∈ R，使对任意分法及 ξᵢ 的任意取法，都有 lim(λ→0) S = I，则称 I 为 f(x) 在 [a, b] 上的定积分，记作\n\n∫_a^b f(x) dx = lim(λ→0) Σ(i=1到n) f(ξᵢ) Δxᵢ\n\n**几何意义**：当 f(x) ≥ 0 时，∫_a^b f(x) dx 表示由曲线 y = f(x)、直线 x = a、x = b 及 x 轴所围成的曲边梯形的面积。当 f(x) 变号时，积分表示各部分面积的代数和。\n\n**可积条件**：\n- 充分条件：若 f(x) 在 [a, b] 上连续，则 f(x) 在 [a, b] 上可积；\n- 充分条件：若 f(x) 在 [a, b] 上有界且仅有有限个间断点，则可积。\n\n**基本性质**（设以下函数均可积）：\n1. 线性：∫_a^b [k₁f(x) ± k₂g(x)] dx = k₁∫_a^b f(x) dx ± k₂∫_a^b g(x) dx\n2. 可加性：∫_a^b f(x) dx = ∫_a^c f(x) dx + ∫_c^b f(x) dx （不论 c 位置）\n3. 规定：∫_a^a f(x) dx = 0；∫_a^b f(x) dx = -∫_b^a f(x) dx\n4. 保号性：若 f(x) ≥ 0 于 [a, b]，则 ∫_a^b f(x) dx ≥ 0\n   推论：若 f(x) ≥ g(x)，则 ∫_a^b f(x) dx ≥ ∫_a^b g(x) dx\n5. 绝对值不等式：|∫_a^b f(x) dx| ≤ ∫_a^b |f(x)| dx\n6. 估值定理：设 M, m 分别为 f(x) 在 [a, b] 上的最大值与最小值，则\n   m(b-a) ≤ ∫_a^b f(x) dx ≤ M(b-a)\n7. **积分中值定理**：若 f(x) 在 [a, b] 上连续，则 ∃ ξ ∈ [a, b]，使\n   ∫_a^b f(x) dx = f(ξ)·(b-a)\n   几何解释：存在高 f(ξ)，使矩形面积 = 曲边梯形面积。\n   f(ξ) 称为 f(x) 在 [a, b] 上的积分平均值。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch05_kp2",
+      "name": "微积分基本公式 — 牛顿-莱布尼茨公式",
+      "content": "**变上限积分函数**：设 f(x) 在 [a, b] 上可积，对 x ∈ [a, b]，称 Φ(x) = ∫_a^x f(t) dt 为变上限积分函数（或积分上限函数）。\n\n**原函数存在定理（微积分基本定理一）**：若 f(x) 在 [a, b] 上连续，则 Φ(x) = ∫_a^x f(t) dt 在 [a, b] 上可导，且 Φ'(x) = d/dx ∫_a^x f(t) dt = f(x)。\n\n即：连续函数的变上限积分函数是它的一个原函数。\n这同时回答了\"连续函数必有原函数\"的问题。\n\n**推广（莱布尼茨公式）**：\nd/dx ∫_{a(x)}^{b(x)} f(t) dt = f[b(x)]·b'(x) - f[a(x)]·a'(x)\n\n**牛顿-莱布尼茨公式（微积分基本公式 / 微积分基本定理二）**：\n若 F(x) 是连续函数 f(x) 在 [a, b] 上的一个原函数，则\n\n∫_a^b f(x) dx = F(b) - F(a)  （常记作 F(x)|_a^b）\n\n**意义**：它把求定积分的问题（和式极限）转化为求原函数的问题（不定积分），架起微分学与积分学的桥梁，使微积分成为一个统一的学科。\n\n**示例**：\n∫_0^1 x² dx = x³/3 |_0^1 = 1/3 - 0 = 1/3\n∫_0^π sin x dx = -cos x |_0^π = -cos π + cos 0 = -(-1) + 1 = 2",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch05_kp3",
+      "name": "定积分的换元法与分部积分法",
+      "content": "**定积分的换元法**：设 f(x) 在 [a, b] 上连续，x = φ(t) 满足：\n1. φ(α) = a, φ(β) = b；\n2. φ(t) 在 [α, β]（或 [β, α]）上具有连续导数；\n3. φ(t) 的值域不超出 [a, b]。\n则 ∫_a^b f(x) dx = ∫_α^β f[φ(t)]·φ'(t) dt\n\n**注意**：换元必换限（上限对应上限，下限对应下限，不论 α 与 β 大小）；求出新被积函数的原函数后，直接代入新上下限求差即可，不必代回原变量。\n\n**对称区间上的积分**（常用技巧）：\n若 f(x) 为偶函数，则 ∫_{-a}^a f(x) dx = 2∫_0^a f(x) dx\n若 f(x) 为奇函数，则 ∫_{-a}^a f(x) dx = 0\n\n**周期函数的积分**：若 f(x+T) = f(x)，则 ∫_a^{a+T} f(x) dx = ∫_0^T f(x) dx（与 a 无关）。\n\n**定积分的分部积分法**：\n∫_a^b u dv = uv|_a^b - ∫_a^b v du\n\n与不定积分的区别是每一项都带上上下限。\n\n**华里士公式（Wallis 公式）**：\n∫_0^{π/2} sinⁿx dx = ∫_0^{π/2} cosⁿx dx\n= (n-1)/n · (n-3)/(n-2) · ... · 2/3 · 1   （n 为正奇数）\n= (n-1)/n · (n-3)/(n-2) · ... · 1/2 · π/2   （n 为正偶数）\n\n例如：∫_0^{π/2} sin⁴x dx = 3/4 · 1/2 · π/2 = 3π/16",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch05_kp4",
+      "name": "反常积分（广义积分）",
+      "content": "**第一类反常积分（无穷限积分）**：\n∫_a^{+∞} f(x) dx = lim(b→+∞) ∫_a^b f(x) dx\n∫_{-∞}^b f(x) dx = lim(a→-∞) ∫_a^b f(x) dx\n∫_{-∞}^{+∞} f(x) dx = ∫_{-∞}^c f(x) dx + ∫_c^{+∞} f(x) dx（两者都收敛才说整体收敛）\n\n**重要例子**（p-积分）：\n∫_1^{+∞} dx/x^p：当 p > 1 时收敛于 1/(p-1)；当 p ≤ 1 时发散。\n\n**第二类反常积分（无界函数积分/瑕积分）**：\n设 f(x) 在 (a, b] 上连续且 lim(x→a⁺) f(x) = ∞（x=a 为瑕点），定义\n∫_a^b f(x) dx = lim(ε→0⁺) ∫_{a+ε}^b f(x) dx\n\n类似定义 b 为瑕点或内部某点为瑕点的情形。\n\n**重要例子**（瑕 p-积分）：\n∫_0^1 dx/x^p：当 p < 1 时收敛；当 p ≥ 1 时发散。\n\n**收敛性判别法**：\n1. 比较判别法：若 0 ≤ f(x) ≤ g(x) 且 ∫ g(x) dx 收敛，则 ∫ f(x) dx 收敛；\n   若 0 ≤ g(x) ≤ f(x) 且 ∫ g(x) dx 发散，则 ∫ f(x) dx 发散。\n2. 极限形式比较法：若 lim(x→∞) x^p·f(x) = L（0 ≤ L < ∞, p > 1）则收敛；\n   若 lim(x→∞) x^p·f(x) = L（0 < L ≤ ∞, p ≤ 1）则发散。\n3. 绝对收敛：∫ |f(x)| dx 收敛 ⇒ ∫ f(x) dx 收敛。\n\n**Γ 函数（了解）**：Γ(s) = ∫_0^{+∞} x^{s-1} e^{-x} dx，当 s > 0 时收敛。\n性质：Γ(s+1) = s·Γ(s)，Γ(n+1) = n!，Γ(1/2) = √π",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch05_kp5",
+      "name": "定积分在几何中的应用 — 微元法",
+      "content": "**微元法思想**：若所求量 U 与变量 x 的变化区间 [a, b] 有关，且对区间具有可加性，则任取微元 [x, x+dx] ⊆ [a, b]，U 的部分量 ΔU 可近似表示为 f(x) dx（即 dU = f(x) dx 为 U 的微元），于是 U = ∫_a^b f(x) dx。\n\n**应用一：平面图形的面积**\n1. 直角坐标：由 y = f(x), y = g(x), x = a, x = b 围成（f ≥ g）：\n   A = ∫_a^b [f(x) - g(x)] dx\n2. 极坐标：由 r = r(θ), θ = α, θ = β 围成的曲边扇形：\n   A = (1/2)∫_α^β r²(θ) dθ\n\n**应用二：平面曲线的弧长**\n1. 参数方程 x = x(t), y = y(t)（t ∈ [α, β]）：\n   s = ∫_α^β √[x'(t)² + y'(t)²] dt\n2. 直角坐标 y = y(x)（x ∈ [a, b]）：\n   s = ∫_a^b √[1 + y'(x)²] dx\n3. 极坐标 r = r(θ)（θ ∈ [α, β]）：\n   s = ∫_α^β √[r(θ)² + r'(θ)²] dθ\n\n**应用三：体积**\n1. 旋转体体积（绕 x 轴旋转 y = f(x)）：\n   V = π ∫_a^b f(x)² dx （圆盘法 / 垫圈法）\n2. 旋转体体积（壳层法，绕 y 轴旋转 y = f(x)）：\n   V = 2π ∫_a^b x·f(x) dx\n3. 已知截面面积 A(x) 的立体体积：\n   V = ∫_a^b A(x) dx\n\n**应用四：旋转曲面的面积**\n曲线 y = f(x)（a ≤ x ≤ b）绕 x 轴旋转一周所成曲面的面积：\nA = 2π ∫_a^b y·ds = 2π ∫_a^b f(x)·√[1 + f'(x)²] dx",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch05_kp6",
+      "name": "定积分在物理中的应用",
+      "content": "**变力沿直线做功**：设力 F(x) 沿 x 轴方向从 a 作用到 b，则功\nW = ∫_a^b F(x) dx\n\n**示例（抽水做功）**：将容器内水全部抽到顶部需做功\nW = ∫ ρ·g·x·A(x) dx，其中 x 为该层距顶部距离，A(x) 为该层横截面积。\n\n**液体的压力**：在深度 h 处，单位面积压力（压强）为 p = ρgh。\n对垂直浸入液体的平板，面积元 dA 所受压力 dP = ρgh(x)·dA，总压力\nP = ∫ ρg·h(x)·dA\n\n**引力**：细杆对质点的引力，可通过建立坐标系，将细杆分成若干微元，利用万有引力定律对每个微元求出引力微元，再积分求合力。\n\n**函数的平均值**：\n函数 f(x) 在 [a, b] 上的平均值 = (1/(b-a)) ∫_a^b f(x) dx\n\n**均方根**（如交流电的有效值）：\nRMS = √[(1/(b-a)) ∫_a^b f(x)² dx]\n\n**微元法的一般步骤**：\n1. 根据问题建立合适的坐标系；\n2. 选取积分变量并确定其变化区间；\n3. 在典型微元上建立物理量的微元表达式；\n4. 积分并代入上下限得总量。\n\n定积分的应用体现了\"以直代曲、以不变代变、以有限代替无限\"的极限思想，是微积分处理实际问题的核心方法。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "用蒙特卡罗法估计定积分与π",
+      "language": "python",
+      "code": "import random, math\n\ndef monte_carlo_integral(f, a, b, n=100000):\n    \"\"\"用蒙特卡罗法估计 ∫_a^b f(x) dx：\n    积分 ≈ (b-a) · f 在 [a, b] 上随机取样的平均值\"\"\"\n    total = 0.0\n    for _ in range(n):\n        x = random.uniform(a, b)\n        total += f(x)\n    return (b - a) * total / n\n\ndef monte_carlo_pi(n=1000000):\n    \"\"\"在单位正方形 [0,1]×[0,1] 中随机投点，\n    落在四分之一圆 x^2 + y^2 <= 1 内的概率 = π/4，\n    因此 π ≈ 4 · 命中次数/总次数。\"\"\"\n    hits = 0\n    for _ in range(n):\n        x, y = random.random(), random.random()\n        if x**2 + y**2 <= 1:\n            hits += 1\n    return 4 * hits / n\n\n# 估计 ∫_0^1 x^2 dx = 1/3\nf = lambda x: x**2\nresult = monte_carlo_integral(f, 0, 1, 100000)\nprint(f\"∫_0^1 x^2 dx 的蒙特卡罗估计 = {result:.6f}, 精确值 = {1/3:.6f}\")\n\n# 估计 ∫_0^π sin x dx = 2\nresult = monte_carlo_integral(math.sin, 0, math.pi, 100000)\nprint(f\"∫_0^π sin x dx 的蒙特卡罗估计 = {result:.6f}, 精确值 = 2.000000\")\n\n# 估计 π\npi_est = monte_carlo_pi(1000000)\nprint(f\"π 的蒙特卡罗估计 = {pi_est:.6f}, 精确值 = {math.pi:.6f}\")\n",
+      "description": "蒙特卡罗积分是一类基于随机取样的数值积分方法，在高维积分、科学计算、金融工程中有重要应用。收敛速度约为 1/√n。"
+    },
+    {
+      "title": "用微元法计算旋转体体积（示例）",
+      "language": "python",
+      "code": "import numpy as np\n\ndef disk_method_volume(f, a, b, n=1000):\n    \"\"\"用圆盘法求 y = f(x) 绕 x 轴旋转从 a 到 b 的体积：\n    V = π ∫_a^b f(x)^2 dx，通过黎曼和近似计算\"\"\"\n    h = (b - a) / n\n    volume = 0.0\n    for i in range(n):\n        x = a + i * h  # 取左端点\n        radius = f(x)\n        # 圆柱片体积 = π·r²·h\n        volume += math.pi * radius**2 * h\n    return volume\n\n# 例：求半径为 r 的球体体积\n# 取 f(x) = √(r² - x²), x ∈ [-r, r]\nr = 2.0\nf = lambda x: math.sqrt(r**2 - x**2)\n\nvol_estimate = disk_method_volume(f, -r, r, 2000)\ntrue_vol = (4/3) * math.pi * r**3\nprint(f\"半径 r = {r} 的球体体积：\")\nprint(f\"  黎曼和估计 = {vol_estimate:.4f}\")\nprint(f\"  精确值 = {true_vol:.4f}\")\nprint(f\"  相对误差 = {abs(vol_estimate - true_vol) / true_vol:.4%}\")\n\n# 例：圆锥体积（底面半径 R，高 h）\nR, H = 2, 3\ncone = lambda x: R * x / H  # 在 x ∈ [0, H]\ncone_vol = disk_method_volume(cone, 0, H, 2000)\nprint(f\"\\n底面半径 R={R}, 高 H={H} 的圆锥体积：\")\nprint(f\"  黎曼和估计 = {cone_vol:.4f}\")\nprint(f\"  精确值 (1/3)πR²H = {(1/3)*math.pi*R**2*H:.4f}\")\n",
+      "description": "将微元法思想转化为数值计算，直观感受积分如何逼近精确值。"
+    }
+  ],
+  "questions": [
+    {"q": "计算 ∫_0^1 (3x² + 2x + 1) dx。", "a": "∫_0^1 (3x² + 2x + 1) dx = [x³ + x² + x]_0^1 = (1 + 1 + 1) - 0 = 3", "type": "计算题"},
+    {"q": "计算 ∫_0^{π/2} sin x · cos²x dx。", "a": "用第一类换元法：令 u = cos x, du = -sin x dx，\n当 x = 0 时 u = 1；x = π/2 时 u = 0。\n∫_0^{π/2} sin x · cos²x dx = -∫_1^0 u² du = ∫_0^1 u² du = u³/3|_0^1 = 1/3", "type": "计算题"},
+    {"q": "计算 ∫_0^1 x·eˣ dx。", "a": "用分部积分法：令 u = x, dv = eˣ dx，则 du = dx, v = eˣ\n∫_0^1 x·eˣ dx = [x·eˣ]_0^1 - ∫_0^1 eˣ dx = (1·e¹ - 0) - [eˣ]_0^1 = e - (e - 1) = 1", "type": "计算题"},
+    {"q": "求 lim(x→0) (∫_0^x sin t² dt) / x³。", "a": "这是 0/0 型，用洛必达法则和变上限求导：\nlim(x→0) (∫_0^x sin t² dt)/x³ = lim(x→0) sin x²/(3x²)\n= lim(x→0) (sin x² / x²)/3 = 1/3\n（因为 lim(u→0) sin u / u = 1）", "type": "计算题"},
+    {"q": "求由抛物线 y = x² 与 y = 2 - x² 围成的图形的面积。", "a": "求交点：x² = 2 - x² ⇒ x² = 1 ⇒ x = ±1。\n交点为 (-1, 1) 和 (1, 1)。在 [-1, 1] 上 2-x² ≥ x²。\nA = ∫_{-1}^1 [(2-x²) - x²] dx = ∫_{-1}^1 (2-2x²) dx\n= 2∫_{-1}^1 (1-x²) dx = 4∫_0^1 (1-x²) dx = 4[x - x³/3]_0^1 = 4(1 - 1/3) = 8/3", "type": "应用题"},
+    {"q": "求由曲线 y = x², x 轴与直线 x = 2 围成的图形绕 x 轴旋转一周所得旋转体的体积。", "a": "用圆盘法：\nV = π ∫_0^2 (x²)² dx = π ∫_0^2 x⁴ dx = π [x⁵/5]_0^2 = π·(32/5 - 0) = 32π/5", "type": "应用题"},
+    {"q": "判断反常积分 ∫_1^{+∞} dx/x² 的敛散性并计算。", "a": "p = 2 > 1，此无穷限 p 积分收敛。\n∫_1^{+∞} dx/x² = lim(b→+∞) ∫_1^b x^{-2} dx = lim(b→+∞) [-1/x]_1^b\n= lim(b→+∞) (-1/b + 1) = 1", "type": "计算题"},
+    {"q": "设 f(x) 在 [a, b] 上连续，证明：∫_a^b f(x) dx = ∫_a^b f(a+b-x) dx。", "a": "作代换 t = a+b-x，则 x = a+b-t，dx = -dt。\n当 x = a 时 t = b；当 x = b 时 t = a。\n∫_a^b f(x) dx = ∫_b^a f(a+b-t) (-dt) = ∫_a^b f(a+b-t) dt\n由积分变量可替换性，∫_a^b f(a+b-t) dt = ∫_a^b f(a+b-x) dx。\n故等式成立。\n\n*这是一个常用的对称技巧（积分区间中点对称）。*", "type": "证明题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第5章 — 定积分及其应用", "type": "教材", "difficulty": "初级", "summary": "系统介绍定积分概念、计算与几何物理应用。", "why_recommend": "定积分的应用需要灵活掌握微元法，配合教材例题学习效果最好。"}
+  ]
+}

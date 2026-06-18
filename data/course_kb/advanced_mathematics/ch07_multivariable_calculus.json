@@ -1,0 +1,82 @@
+{
+  "chapter_id": "ch07",
+  "title": "多元函数微分学",
+  "summary": "本章将微分学从一元函数推广到多元函数。内容包括：多元函数的极限与连续、偏导数与全微分、多元复合函数求导的链式法则、隐函数求导、方向导数与梯度，以及多元函数的极值与条件极值。",
+  "key_points": [
+    {
+      "kp_id": "ch07_kp1",
+      "name": "多元函数的基本概念",
+      "content": "**平面点集与 n 维空间**：\n- Rⁿ = {(x₁, x₂, ..., xₙ) | x_i ∈ R}\n- 邻域 U(P₀, δ) = {P ∈ Rⁿ | |PP₀| < δ}\n- 去心邻域 Ů(P₀, δ) = U(P₀, δ) \\ {P₀}\n- 内点、外点、边界点、聚点、开集、闭集、连通集、开区域（开集）、闭区域、有界集、无界集\n\n**二元函数 z = f(x, y) 的定义\n**：设 D 是 R² 的一个非空子集，称映射 f: D → R 为定义在 D 上的二元函数，记作 z = f(x, y)，D 为定义域，f(D) 为值域。\n\n**二元函数的几何意义**：z = f(x, y) 的图形是空间中的一张曲面。\n例如：z = √(1-x²-y²) 表示上半球面；z = x² + y² 表示旋转抛物面。\n\n**二元函数的极限**：\n若 ∀ ε > 0, ∃ δ > 0, 当 0 < √[(x-x₀)²+(y-y₀)²] < δ 时，恒有 |f(x, y) - A| < ε，则称 A 为 f(x, y) 当 (x, y) → (x₀, y₀) 时的极限，记作 lim_{(x, y)→(x₀, y₀)} f(x, y) = A。\n\n**与一元函数极限的本质区别**：\n一元函数 x → x₀ 只有左右两条路径；但二元函数 (x, y) → (x₀, y₀) 可有无穷多条路径。若 f(x, y) 沿不同路径趋于不同值，则极限不存在。\n\n**示例**：f(x, y) = xy/(x²+y²) 在 (0, 0) 处极限不存在。取 y = kx，f = k/(1+k²) 随 k 而异。\n\n**连续性**：\n若 lim_{(x, y)→(x₀, y₀)} f(x, y) = f(x₀, y₀)，则称 f(x, y) 在 (x₀, y₀) 连续。\n\n**有界闭区域上连续函数的性质**：\n1. 有界性定理；2. 最值定理；3. 介值定理（与一元情形类似）。\n\n**n 元函数 u = f(x₁, x₂, ..., xₙ) 的概念完全类似。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp2",
+      "name": "偏导数",
+      "content": "**偏导数的定义**：\n设 z = f(x, y) 在 (x₀, y₀) 的某邻域内有定义。固定 y = y₀，令 x 在 x₀ 有增量 Δx，若极限\nlim(Δx→0) [f(x₀+Δx, y₀) - f(x₀, y₀)]/Δx 存在，则称此极限为 f(x, y) 在 (x₀, y₀) 处对 x 的偏导数，记作 ∂z/∂x|_{(x₀, y₀)} 或 f_x(x₀, y₀)。\n\n同理定义对 y 的偏导数：f_y(x₀, y₀) = lim(Δy→0) [f(x₀, y₀+Δy) - f(x₀, y₀)]/Δy。\n\n**求法**：对某个变量求偏导时，将其余变量当作常数。\n\n**高阶偏导数**：设 z = f(x, y) 的偏导数 f_x(x, y), f_y(x, y) 的偏导数称为二阶偏导数：\n∂²z/∂x² = f_xx, ∂²z/∂x∂y = f_xy, ∂²z/∂y∂x = f_yx, ∂²z/∂y² = f_yy\n其中 f_xy 和 f_yx 称为混合偏导数。\n\n**混合偏导数相等的条件**：若 f_xy 与 f_yx 在区域 D 内连续，则在 D 内必有 f_xy = f_yx。\n\n**示例**：设 z = x³y² - 3xy³ + xy + 1，则\nez/∂x = 3x²y² - 3y³ + y\n∂z/∂y = 2x³y - 9xy² + x\n∂²z/∂x² = 6xy²\n∂²z/∂y² = 2x³ - 18xy\n∂²z/∂x∂y = 6x²y - 9y² + 1\n∂²z/∂y∂x = 6x²y - 9y² + 1\n\n**偏导数与连续性的关系**：\n与一元函数\"可导必连续\"不同：二元函数在某点处偏导数存在，不能保证函数在该点连续！\n反例：f(x, y) = xy/(x²+y²) 在 (0, 0) 处 f_x(0, 0) = f_y(0, 0) = 0，但 f(x, y) 在 (0, 0) 不连续（极限不存在）。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp3",
+      "name": "全微分",
+      "content": "**定义**：设 z = f(x, y) 在点 (x, y) 的某邻域内有定义。若全增量 Δz = f(x+Δx, y+Δy) - f(x, y) 可表示为 Δz = AΔx + BΔy + o(ρ)，其中 A, B 仅与 x, y 有关而与 Δx, Δy 无关，ρ = √[(Δx)²+(Δy)²]，则称 z = f(x, y) 在点 (x, y) 处可微分，而 AΔx + BΔy 称为函数在点 (x, y) 的全微分，记作 dz = AΔx + BΔy。\n\n**可微的必要条件**：\n若 z = f(x, y) 在 (x, y) 可微，则该点处偏导数必存在，且 A = ∂z/∂x, B = ∂z/∂y。即\ndz = (∂z/∂x)dx + (∂z/∂y)dy\n\n**可微的充分条件**：\n若 z = f(x, y) 的偏导数 ∂z/∂x, ∂z/∂y 在点 (x, y) 连续，则函数在该点可微分。\n\n**概念之间的关系**：\n偏导数连续 ⇒ 可微 ⇒ { 连续 }\n                    ⇒ { 偏导数存在 }\n但反向不成立：连续不能保证偏导数存在；偏导数存在不能保证可微；可微不能保证偏导数连续。\n\n**推广到三元函数 u = f(x, y, z)**：\ndu = (∂u/∂x)dx + (∂u/∂y)dy + (∂u/∂z)dz\n\n**全微分的应用（近似计算）**：\n当 |Δx|, |Δy| 很小时，Δz ≈ dz = f_x(x, y)Δx + f_y(x, y)Δy，因此有\nf(x+Δx, y+Δy) ≈ f(x, y) + f_x(x, y)Δx + f_y(x, y)Δy。\n\n**全微分形式不变性**：\n无论 u, v 是自变量还是中间变量，dz = ∂z/∂u·du + ∂z/∂v·dv。\n这与一元函数的微分形式不变性类似。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp4",
+      "name": "多元复合函数的求导法则 — 链式法则",
+      "content": "**一元中间变量情形**：\n若 z = f(u, v)，其中 u = φ(x), v = ψ(x) 在 x 处可导，且 f(u, v) 在对应点 (u, v) 处可微，则复合函数 z = f[φ(x), ψ(x)] 在 x 处可导，且\ndz/dx = ∂z/∂u · du/dx + ∂z/∂v · dv/dx\n（z 对 x 的导数称为\"全导数\"）。\n\n**二元中间变量情形**：\n若 z = f(u, v), u = φ(x, y), v = ψ(x, y)，则\n∂z/∂x = ∂z/∂u · ∂u/∂x + ∂z/∂v · ∂v/∂x\n∂z/∂y = ∂z/∂u · ∂u/∂y + ∂z/∂v · ∂v/∂y\n\n**一般情形**：无论多少个中间变量、多少个自变量，规则为：对每个自变量求偏导时，先对每个中间变量求偏导后乘以该中间变量对自变量的偏导，再相加。这就是\"链式法则\"。\n\n**树形图示意**（以 z = f(u, v, w), u = φ(x, y), v = ψ(x, y), w = ω(x, y) 为例）：\nz 对 x 的偏导 = ∂z/∂x = ∂z/∂u·∂u/∂x + ∂z/∂v·∂v/∂x + ∂z/∂w·∂w/∂x\n\n**示例**：设 z = e^u · sin v，u = xy, v = x + y，则\n∂z/∂x = ∂z/∂u·∂u/∂x + ∂z/∂v·∂v/∂x = e^u·sin v · y + e^u·cos v · 1 = e^(xy)[y·sin(x+y) + cos(x+y)]\n\n**全微分的不变性**：\n当 u, v 是中间变量（复合函数）时，dz = ∂z/∂u du + ∂z/∂v dv，与 u, v 是自变量时的形式完全相同。\n\n**全导数的实际意义**：链式法则是多元函数求导的最重要方法，所有多元函数微分学的应用（方向导数、隐函数求导、优化等）均基于此。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp5",
+      "name": "隐函数的求导公式",
+      "content": "**隐函数存在定理（隐函数定理）**：\n设 F(x, y) 在点 P(x₀, y₀) 的某一邻域内具有连续偏导数，且 F(x₀, y₀) = 0，F_y(x₀, y₀) ≠ 0，那么方程 F(x, y) = 0 在点 (x₀, y₀) 的这一邻域内恒能唯一确定一个单值连续且具有连续导数的函数 y = f(x)，它满足条件 y₀ = f(x₀)，并有\ndy/dx = -F_x/F_y。\n\n**推广到多元情形**：\n设 F(x, y, z) = 0，确定隐函数 z = f(x, y)，则\n∂z/∂x = -F_x/F_z，∂z/∂y = -F_y/F_z（要求 F_z ≠ 0）。\n\n**隐函数方程组情形**：\n由方程组 F(x, y, u, v) = 0, G(x, y, u, v) = 0 可确定两个二元隐函数 u = u(x, y), v = v(x, y)。\n\n设 J = ∂(F, G)/∂(u, v) = |F_u  F_v| = F_u·G_v - F_v·G_u  ≠ 0（雅可比行列式），则\n∂u/∂x = -(1/J)·∂(F, G)/∂(x, v)，∂u/∂y = -(1/J)·∂(F, G)/∂(u, y)。\n\n**雅可比行列式**：函数组 u = u(x, y), v = v(x, y) 的雅可比行列式为\nJ = ∂(u, v)/∂(x, y)。\n\n**例题**：设 x² + y² + z² - 4z = 0，求 ∂²z/∂x²。\n设 F(x, y, z) = x² + y² + z² - 4z，则 F_x = 2x, F_z = 2z - 4，\n∂z/∂x = -F_x/F_z = -2x/(2z-4) = x/(2-z)。\n对 x 再次求导得 ∂²z/∂x² = [(2-z) + x(∂z/∂x)]/(2-z)² = ...（代入化简）。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp6",
+      "name": "方向导数与梯度",
+      "content": "**方向导数**：\n设 z = f(x, y) 在点 P₀(x₀, y₀) 的某邻域内有定义，l 是从 P₀ 出发的射线，其方向余弦为 cos α, cos β。若极限 lim(ρ→0) [f(x₀+ρ cos α, y₀+ρ cos β) - f(x₀, y₀)]/ρ 存在，则称此极限为 f 在 P₀ 沿方向 l 的方向导数，记作 ∂f/∂l|_{P₀}。\n\n**计算公式（可微函数方向导数**：若 f 在 P₀ 可微，则在该点沿任意方向 l 的方向导数存在，且\n∂f/∂l = ∂f/∂x · cos α + ∂f/∂y · cos β\n\n其中 (cos α, cos β) 是方向 l 的单位向量。\n\n**推广到三元函数**：∂f/∂l = f_x·cos α + f_y·cos β + f_z·cos γ。\n\n**梯度（Gradient）**：设函数 f(x, y) 在平面区域 D 内具有一阶连续偏导数，则对于每一点 P₀(x₀, y₀) ∈ D，都可定出一个向量(∂f/∂x)i + (∂f/∂y)j，这向量称为函数 f(x, y) 在点 P₀ 的梯度，记作 grad f(x₀, y₀)。\n即 grad f = (∂f/∂x, ∂f/∂y) = ∇f（∇ 为 nabla 算子）。\n\n**梯度与方向导数的关系**：\n∂f/∂l = grad f · l̂ = |grad f|·cos θ，其中 θ 是梯度与方向 l 的夹角。\n\n**梯度的重要性质**：\n1. 方向 l 与梯度同向时，方向导数取得最大值 |grad f|。即梯度方向是函数增长最快的方向。\n2. 梯度方向是等高线 f(x, y) = C 的法线方向。\n3. |grad f| 是梯度模 = |(f_x, f_y)| = √(f_x² + f_y²)。\n\n**几何意义**：\n- 梯度方向是函数值变化最快的方向；\n- 负梯度方向是最速下降方向（优化算法的基础）。\n\n**示例**：求 z = x² + y² - z 在点 P₀(1, 1) 处的方向导数的最大值。\ngrad z(1, 1) = (2x, 2y)|_{(1,1)} = (2, 2)，方向导数最大值 = |(2, 2)| = 2√2。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch07_kp7",
+      "name": "多元函数的极值及其求法",
+      "content": "**多元函数极值定义**：设 z = f(x, y) 在点 (x₀, y₀) 的某邻域内有定义，若对该邻域内异于 (x₀, y₀) 的点 (x, y)，恒有 f(x, y) < f(x₀, y₀)（或 >），则称 f(x₀, y₀) 为 f 的极大值（或极小值）；点 (x₀, y₀) 为极值点。\n\n**极值的必要条件**：若 z = f(x, y) 在点 (x₀, y₀) 处具有偏导数，且在该点取得极值，则必有 f_x(x₀, y₀) = 0, f_y(x₀, y₀) = 0。\n\n使 f_x = 0, f_y = 0 同时成立的点 (x₀, y₀) 称为函数 z = f(x, y) 的**驻点**。\n\n**极值的充分条件（二阶导数判别法）**：\n设 z = f(x, y) 在驻点 (x₀, y₀) 的某邻域内连续且有一阶及二阶连续偏导数，又 f_x(x₀, y₀) = 0, f_y(x₀, y₀) = 0。令\nA = f_xx(x₀, y₀), B = f_xy(x₀, y₀), C = f_yy(x₀, y₀)\n\n则 f(x, y) 在 (x₀, y₀) 处是否取得极值的条件如下：\n1. AC - B² > 0 时具有极值：A < 0 为极大值，A > 0 为极小值；\n2. AC - B² < 0 时没有极值；\n3. AC - B² = 0 时无法判别（需进一步研究）。\n\n**求二元函数极值的一般步骤**：\n1. 解方程组 f_x = 0, f_y = 0，求所有驻点；\n2. 对每个驻点 (x₀, y₀)，求二阶偏导数 A, B, C；\n3. 由 AC - B² 的符号判定是否为极值。\n\n**求最大值、最小值**：对有界闭区域 D 上连续的函数 f(x, y)，求其在 D 内所有驻点处的函数值及在 D 的边界上的最大值和最小值，比较得最值。\n\n**条件极值（Constrained Optimization）**：目标函数 z = f(x, y) 在约束条件 g(x, y) = 0 下的极值。\n\n**拉格朗日乘数法（Method of Lagrange Multipliers）**：\n构造拉格朗日函数 L(x, y, λ) = f(x, y) + λ·g(x, y)，求解方程组\n∂L/∂x = 0, ∂L/∂y = 0, ∂L/∂λ = 0。\n\n**推广到三元函数**：u = f(x, y, z) 在 g(x, y, z) = 0 约束下的极值，构造 L(x, y, z, λ) = f + λg。\n\n*拉格朗日乘数法是优化理论的基石之一，在经济学、工程学、机器学习中均有重要应用。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "用梯度下降法求函数最小值",
+      "language": "python",
+      "code": "import math\n\ndef gradient_descent(f, grad_f, x0, y0, lr=0.01, tol=1e-8, max_iter=10000):\n    \"\"\"梯度下降法求二元函数的最小值。\n    f: 目标函数\ngrad_f: 梯度函数 (∂f/∂x, ∂f/∂y)\nlr: 学习率\ntol: 收敛判据\    x, y = x0, y0\n    history = [(x, y)]\n    for _ in range(max_iter):\n        gx, gy = grad_f(x, y)\n        if math.sqrt(gx**2 + gy**2) < tol:\n            break\n        x -= lr * gx\n        y -= lr * gy\n        history.append((x, y))\n    return x, y, history\n\n# 例：f(x, y) = x^2 + y^2 - 2x - 4y + 5 = (x-1)^2 + (y-2)^2\n# 解析最小值在 (1, 2)，值为 0\nf = lambda x, y: x**2 + y**2 - 2*x - 4*y + 5\ngrad_f = lambda x, y: (2*x - 2, 2*y - 4)\n\nx_min, y_min, history = gradient_descent(f, grad_f, 0.0, 0.0, lr=0.1)\nprint(\"f(x, y) = x^2 + y^2 - 2x - 4y + 5 的最小值：\")\nprint(f\"  迭代 {len(history)} 次\")\nprint(f\"  最小值点: ({x_min:.8f}, {y_min:.8f})\")\nprint(f\"  函数最小值: {f(x_min, y_min):.10f}\")\n\n# 例：Rosenbrock 函数 f(x, y) = (1-x)^2 + 100(y-x^2)^2\n# 经典测试函数，全局最小值在 (1, 1)，值为 0\nf2 = lambda x, y: (1 - x)**2 + 100 * (y - x**2)**2\ngrad_f2 = lambda x, y: (-2*(1-x) - 400*x*(y - x**2), 200*(y - x**2))\n\nx2, y2, hist2 = gradient_descent(f2, grad_f2, 0.0, 0.0, lr=0.002, max_iter=50000)\nprint(f\"\\nRosenbrock 函数的最小值：\")\nprint(f\"  迭代 {len(hist2)} 次\")\nprint(f\"  最小值点: ({x2:.6f}, {y2:.6f})\")\nprint(f\"  函数最小值: {f2(x2, y2):.10f}\")\n",
+      "description": "梯度下降法是基于梯度信息的最基本优化算法，是机器学习训练神经网络等算法的基础。"
+    },
+    {
+      "title": "可视化方向导数与梯度",
+      "language": "python",
+      "code": "import math\n\ndef f(x, y):\n    return x**2 + y**2 - x*y  # f(x, y) = x^2 + y^2 - xy\n\ndef gradient_f(x, y):\n    return 2*x - y, 2*y - x\n\ndef directional_derivative(x, y, angle_deg):\n    \"\"\"在 (x, y) 处沿方向 angle_deg 度方向的方向导数\"\"\"\n    angle_rad = math.radians(angle_deg)\n    dx = math.cos(angle_rad)\n    dy = math.sin(angle_rad)\n    gx, gy = gradient_f(x, y)\n    return gx * dx + gy * dy\n\nx, y = 1.0, 2.0\nprint(f\"在点 (1, 2) 处：\")\nprint(f\"  梯度向量: ({gradient_f(x, y)})\")\nprint(f\"  梯度模长: {math.sqrt(sum(v**2 for v in gradient_f(x, y)):.4f}\")\nprint(f\"  函数值: {f(x, y)}\")\nprint()\nprint(\"不同方向的方向导数：\")\nfor ang in range(0, 360, 45):\n    dd = directional_derivative(x, y, ang)\n    print(f\"  角度 {ang:3d}°: {dd:.4f}\")\n\n# 寻找最大值\nprint(f\"\\n方向导数的理论最大值 = 梯度的模 = {math.sqrt(sum(v**2 for v in gradient_f(x, y))):.4f}\")\n",
+      "description": "通过数值计算理解方向导数在不同方向的值及其与梯度的关系。"
+    }
+  ],
+  "questions": [
+    {"q": "设 z = x²y + 3xy⁴，求 ∂z/∂x, ∂z/∂y。", "a": "∂z/∂x = 2xy + 3y⁴\n∂z/∂y = x² + 12xy³", "type": "计算题"},
+    {"q": "设 z = e^(x-2y)，而 x = sin t, y = t³，求 dz/dt。", "a": "dz/dt = ∂z/∂x·dx/dt + ∂z/∂y·dy/dt\n= e^(x-2y)·cos t + e^(x-2y)·(-2)·3t²\n= e^(sin t - 2t³)(cos t - 6t²)", "type": "计算题"},
+    {"q": "设 z = f(x² - y², e^(xy))，其中 f 具有连续一阶偏导数，求 ∂z/∂x, ∂z/∂y。", "a": "令 u = x² - y², v = e^(xy)，则 z = f(u, v)。\n∂z/∂x = ∂f/∂u·∂u/∂x + ∂f/∂v·∂v/∂x = 2x·f_u + y·e^(xy)·f_v\n∂z/∂y = ∂f/∂u·∂u/∂y + ∂f/∂v·∂v/∂y = -2y·f_u + x·e^(xy)·f_v\n也可以使用 f₁, f₂ 表示对第一、第二个中间变量的偏导数。", "type": "计算题"},
+    {"q": "求由方程 x² + y² + z² - 4z = 0 所确定的隐函数 z = z(x, y) 的偏导数 ∂z/∂x, ∂z/∂y。", "a": "设 F(x, y, z) = x² + y² + z² - 4z，则 F_x = 2x, F_y = 2y, F_z = 2z - 4。\n由隐函数定理：\n∂z/∂x = -F_x/F_z = -2x/(2z-4) = x/(2-z)\n∂z/∂y = -F_y/F_z = -2y/(2z-4) = y/(2-z)", "type": "计算题"},
+    {"q": "求函数 f(x, y) = x³ - y³ + 3x² + 3y² - 9x 的极值。", "a": "先求驻点：\nf_x = 3x² + 6x - 9 = 3(x² + 2x - 3) = 3(x+3)(x-1) = 0 ⇒ x = -3, 1\nf_y = -3y² + 6y = -3y(y-2) = 0 ⇒ y = 0, 2\n驻点：(1, 0), (1, 2), (-3, 0), (-3, 2)\n\n二阶偏导数：A = f_xx = 6x + 6, B = f_xy = 0, C = f_yy = -6y + 6\nAC - B² = (6x+6)(-6y+6)\n\n1. (1, 0)：AC-B² = 12·6 = 72 > 0，且 A = 12 > 0，为极小值点，f(1, 0) = -5\n2. (1, 2)：AC-B² = 12·(-6) = -72 < 0，不是极值\n3. (-3, 0)：AC-B² = (-12)·6 = -72 < 0，不是极值\n4. (-3, 2)：AC-B² = (-12)·(-6) = 72 > 0，且 A = -12 < 0，为极大值点，f(-3, 2) = 31\n\n因此 f 在 (1, 0) 处取得极小值 -5，在 (-3, 2) 处取得极大值 31。", "type": "分析题"},
+    {"q": "求函数 z = xy 在附加条件 x + y = 1 下的最大值。", "a": "方法一：将 y = 1 - x 代入，z = x(1-x) = x - x²。z' = 1 - 2x = 0 ⇒ x = 1/2, y = 1/2。z_max = 1/4。\n\n方法二（拉格朗日乘数法）：\nL = xy + λ(x + y - 1)\n∂L/∂x = y + λ = 0\∂L/∂y = x + λ = 0\∂L/∂λ = x + y - 1 = 0\n由前两式得 x = y = -λ，代入第三式 2x = 1, x = 1/2, y = 1/2。\n最大值 z = 1/4。", "type": "应用题"},
+    {"q": "求函数 u = ln(x + y + z) 在点 (1, 0, -1) 处沿方向 l = (2, 1, -2) 的方向导数。", "a": "先求梯度：∂u/∂x = ∂u/∂y = ∂u/∂z = 1/(x+y+z)\n在 (1, 0, -1) 处，∂u/∂x = ∂u/∂y = ∂u/∂z = 1/0……？\n注：原题可能有错，因为该点不在函数定义域内。\n改为 (1, 1, 1) 为例：\n∂u/∂x = 1/3，∂u/∂y = 1/3，∂u/∂z = 1/3。\n方向 l = (2, 1, -2)，方向余弦：|l| = √(4+1+4) = 3，\nl̂ = (2/3, 1/3, -2/3)。\n方向导数：∂u/∂l = (1/3)(2/3) + (1/3)(1/3) + (1/3)(-2/3) = (2+1-2)/9 = 1/9。", "type": "计算题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第8章 — 多元函数微分学", "type": "教材", "difficulty": "初级", "summary": "系统介绍多元函数、极限、连续、偏导数、全微分、方向导数、梯度及多元函数极值。", "why_recommend": "与前面一元函数部分对比学习，理解共性与差异。"}
+  ]
+}

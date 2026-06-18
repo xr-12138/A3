@@ -1,0 +1,88 @@
+{
+  "chapter_id": "ch06",
+  "title": "微分方程",
+  "summary": "本章介绍微分方程的基本概念，系统讲授一阶微分方程（可分离变量、齐次、一阶线性、伯努利、全微分）的解法，可降阶的高阶微分方程，以及高阶线性微分方程的通解结构与常系数线性微分方程的解法。微分方程是微积分应用于自然科学与工程技术的重要工具。",
+  "key_points": [
+    {
+      "kp_id": "ch06_kp1",
+      "name": "微分方程的基本概念",
+      "content": "**微分方程**：表示未知函数、未知函数的导数（或微分）与自变量之间关系的方程称为微分方程。\n\n**分类**：\n- 按自变量个数：常微分方程（ODE，一个自变量）/ 偏微分方程（PDE，多个自变量）\n- 按阶数：一阶、二阶、...、n 阶\n- 按是否线性：线性微分方程 / 非线性微分方程\n\n**阶**：方程中未知函数的最高阶导数的阶数。\n\n**n 阶微分方程的一般形式**：F(x, y, y', ..., y⁽ⁿ⁾) = 0\n标准形式（可解出最高阶导数）：y⁽ⁿ⁾ = f(x, y, y', ..., y⁽ⁿ⁻¹⁾)\n\n**解**：代入微分方程后使方程成为恒等式的函数。\n\n**通解**：含有 n 个相互独立的任意常数的解（n 为方程的阶数）。\n\n**特解**：通解中任意常数取确定值后得到的解。\n\n**初始条件**：确定通解中任意常数的条件。对 n 阶方程，通常给定\n y(x₀) = y₀, y'(x₀) = y₁, ..., y⁽ⁿ⁻¹⁾(x₀) = y_{n-1}\n\n**初值问题（柯西问题）**：求满足微分方程和初始条件的特解。\n\n**积分曲线**：微分方程的解所表示的曲线。\n\n**一阶微分方程的通解一般形式**：G(x, y, C) = 0（隐式解）或 y = φ(x, C)（显式解）。",
+      "difficulty": "基础",
+      "teaching_hours": 1
+    },
+    {
+      "kp_id": "ch06_kp2",
+      "name": "可分离变量的微分方程",
+      "content": "**定义**：可化为 g(y) dy = f(x) dx 形式的一阶微分方程称为可分离变量的微分方程。\n标准形式：dy/dx = f(x)·g(y)  或  P(x)·Q(y) dx + R(x)·S(y) dy = 0（经整理可分离）\n\n**解法**：\n1. 分离变量：将含 y 的项与 dy 放一边，含 x 的项与 dx 放另一边\n2. 两边积分：∫ g(y) dy = ∫ f(x) dx + C\n3. 求不定积分得通解 G(y) = F(x) + C\n4. 若有初始条件，代入确定常数 C 得特解\n\n**示例**：\n解方程 dy/dx = 2xy，y(0) = 1\n分离变量：dy/y = 2x dx\n两边积分：ln|y| = x² + C₁，即 y = C·e^(x²)\n代入初始条件 y(0) = 1：C = 1\n特解：y = e^(x²)\n\n**注意**：\n- 分离变量时要考虑分母为零的情形，可能丢失解\n- 如 g(y₀) = 0，则 y = y₀ 可能是特解但未包含在通解中\n- 隐式解也是合法的解",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp3",
+      "name": "齐次方程与可化为齐次的方程",
+      "content": "**齐次方程**：若一阶微分方程 dy/dx = f(x, y) 的右端 f(x, y) 可表达为 y/x 的函数，即 dy/dx = φ(y/x)，则称为齐次方程。\n\n**解法 — 变量代换**：\n令 u = y/x，即 y = ux，则 dy/dx = u + x·du/dx。\n代入原方程：u + x·du/dx = φ(u)，即 x·du/dx = φ(u) - u\n这是可分离变量方程：du/[φ(u)-u] = dx/x，两边积分后将 u = y/x 代回。\n\n**示例**：解 dy/dx = y/x + tan(y/x)\n令 u = y/x，dy/dx = u + x·du/dx。方程化为\nu + x·du/dx = u + tan u ⇒ x·du/dx = tan u\n分离变量：cot u du = dx/x ⇒ ln|sin u| = ln|x| + C₁\nsin u = Cx，代回得 sin(y/x) = Cx\n\n**可化为齐次的方程**：形如 dy/dx = (a₁x + b₁y + c₁)/(a₂x + b₂y + c₂) 的方程\n1. 若 c₁ = c₂ = 0，则已是齐次方程\n2. 若 a₁/a₂ ≠ b₁/b₂，则作平移 x = X + h, y = Y + k，令常数项为零，解出 h, k\n3. 若 a₁/a₂ = b₁/b₂，则令 a₁/a₂ = b₁/b₂ = k，令 v = a₂x + b₂y\n\n*齐次化是处理齐次型和部分一阶非线性方程的重要方法。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp4",
+      "name": "一阶线性微分方程",
+      "content": "**标准形式**：y' + P(x)·y = Q(x)\n\n若 Q(x) ≡ 0，则称为**齐次线性方程**：y' + P(x)·y = 0\n若 Q(x) ≢ 0，则称为**非齐次线性方程**。\n\n**齐次线性方程的解法**：\n分离变量：dy/y = -P(x) dx ⇒ ln|y| = -∫ P(x) dx + C₁ ⇒ y = C·e^(-∫ P(x) dx)\n\n**非齐次线性方程的解法 — 常数变易法**：\n1. 先求对应齐次方程的通解 y = C·e^(-∫ P(x) dx)\n2. 把常数 C 变易为未知函数 C(x)，即设 y = C(x)·e^(-∫ P(x) dx)\n3. 代入原方程得 C'(x) = Q(x)·e^(∫ P(x) dx)\n4. 积分得 C(x) = ∫ Q(x)·e^(∫ P(x) dx) dx + C\n5. 因此通解公式：\n   y = e^(-∫ P(x) dx) · [∫ Q(x)·e^(∫ P(x) dx) dx + C]\n\n**通解结构**：\n非齐次线性方程的通解 = 对应齐次方程的通解 + 非齐次方程的一个特解\n\n**伯努利方程（Bernoulli equation）**：\ny' + P(x)·y = Q(x)·yⁿ  （n ≠ 0, 1；n=0,1 时为线性方程）\n\n**解法**：令 z = y^(1-n)，方程化为一阶线性方程\nz' + (1-n)P(x)·z = (1-n)Q(x)",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp5",
+      "name": "全微分方程",
+      "content": "**全微分方程**：若一阶微分方程可写成 M(x, y) dx + N(x, y) dy = 0\n且左端是某个函数 u(x, y) 的全微分：du = M dx + N dy，则称其为全微分方程（或恰当方程）。\n此时方程的通解为 u(x, y) = C。\n\n**判别条件**：设 M, N 在单连通区域内具有一阶连续偏导数，则\nM(x, y) dx + N(x, y) dy = 0 是全微分方程 ⟺ ∂M/∂y = ∂N/∂x\n\n**求原函数 u(x, y) 的方法**：\n方法一（曲线积分）：u(x, y) = ∫_{(x₀, y₀)}^{(x, y)} M dx + N dy\n选平行坐标轴的折线路径：\nu(x, y) = ∫_{x₀}^x M(t, y₀) dt + ∫_{y₀}^y N(x, t) dt\n\n方法二（不定积分法）：\n由 ∂u/∂x = M(x, y)，对 x 积分得 u = ∫ M(x, y) dx + φ(y)\n再由 ∂u/∂y = N(x, y)，两边对 y 求导得 φ'(y) 的方程，解出 φ(y)。\n\n**积分因子（Integrating Factor）**：\n若方程 M dx + N dy = 0 不是全微分方程，但存在 μ(x, y) 使\nμM dx + μN dy = 0 成为全微分方程，则称 μ(x, y) 为积分因子。\n\n**寻求积分因子的特殊情形**：\n1. 若 (1/N)(∂M/∂y - ∂N/∂x) 仅为 x 的函数，则 μ(x) = e^(∫ φ(x) dx)\n2. 若 (1/M)(∂N/∂x - ∂M/∂y) 仅为 y 的函数，则 μ(y) = e^(∫ ψ(y) dy)\n\n*积分因子法是化非恰当方程为恰当方程的重要技巧。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp6",
+      "name": "可降阶的高阶微分方程",
+      "content": "对某些特殊类型的高阶方程，可通过变量代换降为一阶方程来解。\n\n**类型一：y⁽ⁿ⁾ = f(x)（右端仅含 x）**\n连续积分 n 次即得通解。每次积分引入一个积分常数。\n\n**类型二：y'' = f(x, y')（不显含 y）**\n令 p = y'，则 y'' = dp/dx = p'，方程化为 p' = f(x, p)（一阶方程）。\n若能解出 p = φ(x, C₁)，则 y' = φ(x, C₁)，再积分得 y。\n\n**示例**：解 (1+x²)y'' = 2xy' （不显含 y）\n令 p = y'，则 (1+x²)p' = 2xp ⇒ dp/p = 2x/(1+x²) dx\nln|p| = ln(1+x²) + C₁ ⇒ p = C₁(1+x²)\ny' = C₁(1+x²) ⇒ y = C₁(x + x³/3) + C₂\n\n**类型三：y'' = f(y, y')（不显含 x）**\n令 p = y'，则 y'' = dp/dx = dp/dy · dy/dx = p · dp/dy。\n方程化为 p · dp/dy = f(y, p)（以 y 为自变量、p 为未知函数的一阶方程）。\n若能解出 p = φ(y, C₁)，即 dy/dx = φ(y, C₁)，再分离变量积分得通解。\n\n**示例**：解 y·y'' = (y')²\n令 p = y'，y'' = p·dp/dy。原方程化为 y·p·dp/dy = p²\n若 p ≠ 0：y·dp/dy = p ⇒ dp/p = dy/y ⇒ ln|p| = ln|y| + C₁ ⇒ p = C₁y\n即 dy/dx = C₁y ⇒ dy/y = C₁ dx ⇒ ln|y| = C₁x + C₂ ⇒ y = C·e^(C₁x)\n若 p = 0，则 y = C（含在上述通解中，取 C₁ = 0 即得）",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp7",
+      "name": "高阶线性微分方程 — 通解结构",
+      "content": "**n 阶线性微分方程的标准形式**：\ny⁽ⁿ⁾ + P₁(x)y⁽ⁿ⁻¹⁾ + ... + P_{n-1}(x)y' + P_n(x)y = f(x)\n\n若 f(x) ≡ 0，称为**齐次线性方程**；否则称为**非齐次线性方程**。\n若系数 P_i(x) 都是常数，则称为**常系数线性微分方程**。\n\n**函数组的线性相关性**：\n若存在 n 个不全为零的常数 k₁, ..., k_n，使 Σ k_i y_i(x) ≡ 0 在区间 I 上成立，则称 y₁(x), ..., y_n(x) 在 I 上**线性相关**；否则线性无关。\n\n**朗斯基行列式**（Wronskian）：\nW(y₁, ..., y_n) = |y_i^{(j-1)}|（n×n 行列式，j-1 阶导数在第 j 行）\n若 y₁, ..., y_n 线性相关，则 W ≡ 0。\n\n**齐次线性方程的通解结构**：\n若 y₁, y₂, ..., y_n 是 n 阶齐次线性方程的 n 个线性无关的解，则其通解为\ny = C₁y₁ + C₂y₂ + ... + C_ny_n\n这样的 n 个线性无关解称为一个**基本解组**。\n\n**非齐次线性方程的通解结构**：\n非齐次方程的通解 = 对应齐次方程的通解 + 非齐次方程的一个特解 y*\n即 y = C₁y₁ + ... + C_ny_n + y*\n\n**叠加原理**：\n若非齐次项 f(x) = f₁(x) + f₂(x)，且 y₁* 对应 f₁，y₂* 对应 f₂，则 y* = y₁* + y₂* 是对应 f = f₁ + f₂ 的特解。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch06_kp8",
+      "name": "二阶常系数线性微分方程",
+      "content": "**二阶常系数齐次线性方程**：\ny'' + py' + qy = 0  （p, q 为常数）\n\n**特征方程**：r² + pr + q = 0\n\n**三种情形下的通解**：\n1. **两个不相等的实根 r₁ ≠ r₂**：通解为 y = C₁·e^(r₁x) + C₂·e^(r₂x)\n2. **两个相等的实根 r₁ = r₂ = r**：通解为 y = (C₁ + C₂x)·e^(rx)\n3. **一对共轭复根 r₁,₂ = α ± iβ**：通解为 y = e^(αx)·(C₁ cos βx + C₂ sin βx)\n\n**推广到 n 阶常系数齐次线性方程**：\n特征方程 rⁿ + p₁r^(n-1) + ... + p_n = 0 的每一个根对应通解中的一项：\n- 单实根 r：对应项 C·e^(rx)\n- k 重实根 r：对应项 (C₁ + C₂x + ... + C_k x^(k-1))·e^(rx)\n- 单重共轭复根 α ± iβ：对应项 e^(αx)(C₁ cos βx + C₂ sin βx)\n- k 重共轭复根 α ± iβ：对应项 e^(αx)[(C₁ + ... + C_k x^(k-1))cos βx + (D₁ + ... + D_k x^(k-1))sin βx]\n\n**二阶常系数非齐次线性方程**：\ny'' + py' + qy = f(x)\n\n关键是求特解 y*，通常用**待定系数法**（适用于右端 f(x) 为以下特殊形式）：\n\n**类型一：f(x) = e^(λx)·P_m(x)，其中 P_m 是 m 次多项式**\n设 y* = x^k·e^(λx)·Q_m(x)，其中：\n- k = 0，若 λ 不是特征根；\n- k = 1，若 λ 是单特征根；\n- k = 2，若 λ 是二重特征根。\nQ_m(x) 是与 P_m(x) 同次的多项式，系数待定。\n\n**类型二：f(x) = e^(λx)[P_l(x)cos ωx + P_n(x)sin ωx]**\n设 y* = x^k·e^(λx)[R_m^(1)(x)cos ωx + R_m^(2)(x)sin ωx]，其中：\n- m = max(l, n)\n- k = 0，若 λ ± iω 不是特征根；\n- k = 1，若 λ ± iω 是单特征根。\n\n**示例**：解 y'' - 2y' - 3y = 3x + 1\n特征方程 r² - 2r - 3 = 0，根 r₁ = -1, r₂ = 3。齐次通解：y = C₁e^(-x) + C₂e^(3x)\n设特解 y* = Ax + B（因 λ = 0 不是特征根，取 k = 0）。代入方程得 -3Ax + (-2A-3B) = 3x + 1。解得 A = -1, B = 1/3。\n故通解：y = C₁e^(-x) + C₂e^(3x) - x + 1/3。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "欧拉法与改进欧拉法数值求解 ODE",
+      "language": "python",
+      "code": "import math\n\ndef euler_method(f, x0, y0, x_end, h=0.01):\n    \"\"\"欧拉法：y_{n+1} = y_n + h·f(x_n, y_n)\"\"\"\n    x, y = x0, y0\n    xs, ys = [x], [y]\n    while x < x_end:\n        y += h * f(x, y)\n        x += h\n        xs.append(x)\n        ys.append(y)\n    return xs, ys\n\ndef improved_euler(f, x0, y0, x_end, h=0.01):\n    \"\"\"改进欧拉法（Heun 法）：\n    y_{n+1}* = y_n + h·f(x_n, y_n)         # 预测\n    y_{n+1} = y_n + h/2·[f(x_n, y_n) + f(x_{n+1}, y_{n+1}*)]  # 修正\"\"\"\n    x, y = x0, y0\n    xs, ys = [x], [y]\n    while x < x_end:\n        k1 = f(x, y)\n        y_pred = y + h * k1\n        k2 = f(x + h, y_pred)\n        y += h * (k1 + k2) / 2.0\n        x += h\n        xs.append(x)\n        ys.append(y)\n    return xs, ys\n\n# 例：y' = -2x·y, y(0) = 1 的解析解为 y = e^(-x^2)\nf = lambda x, y: -2 * x * y\nx0, y0 = 0, 1\nx_end = 2\n\nxs_e, ys_e = euler_method(f, x0, y0, x_end, 0.1)\nxs_ie, ys_ie = improved_euler(f, x0, y0, x_end, 0.1)\n\ntrue_sol = lambda x: math.exp(-x**2)\n\nprint(f\"y' = -2xy, y(0) = 1 在 x = {x_end} 处的数值解：\")\nprint(f\"  欧拉法:       y({x_end}) ≈ {ys_e[-1]:.6f}, 误差 = {abs(ys_e[-1] - true_sol(x_end)):.6f}\")\nprint(f\"  改进欧拉法:    y({x_end}) ≈ {ys_ie[-1]:.6f}, 误差 = {abs(ys_ie[-1] - true_sol(x_end)):.6f}\")\nprint(f\"  解析解:        y({x_end}) = {true_sol(x_end):.6f}\")\n",
+      "description": "演示常微分方程数值解法中最基础的方法。欧拉法是一阶方法，改进欧拉法（Heun）是二阶方法。"
+    },
+    {
+      "title": "四阶 Runge-Kutta 法求解常微分方程",
+      "language": "python",
+      "code": "def runge_kutta4(f, x0, y0, x_end, h=0.1):\n    \"\"\"四阶经典 Runge-Kutta 法（RK4）：\n    k1 = h·f(x_n, y_n)\n    k2 = h·f(x_n + h/2, y_n + k1/2)\n    k3 = h·f(x_n + h/2, y_n + k2/2)\n    k4 = h·f(x_n + h, y_n + k3)\n    y_{n+1} = y_n + (k1 + 2k2 + 2k3 + k4)/6\"\"\"\n    x, y = x0, y0\n    xs, ys = [x], [y]\n    while x < x_end:\n        k1 = h * f(x, y)\n        k2 = h * f(x + h/2, y + k1/2)\n        k3 = h * f(x + h/2, y + k2/2)\n        k4 = h * f(x + h, y + k3)\n        y += (k1 + 2*k2 + 2*k3 + k4) / 6.0\n        x += h\n        xs.append(x)\n        ys.append(y)\n    return xs, ys\n\n# 例：单摆方程（线性化）：theta'' + omega^2·theta = 0\n# 写成一阶方程组：令 y1 = theta, y2 = theta'，则 y1' = y2, y2' = -omega^2·y1\n# 初始条件 theta(0) = 0.1, theta'(0) = 0，解析解 theta = 0.1·cos(omega·t)\n\ndef f_pendulum(t, state, omega=1.0):\n    y1, y2 = state\n    return [y2, -omega**2 * y1]\n\ndef rk4_system(f, t0, y0, t_end, h=0.05):\n    \"\"\"对一阶方程组的 RK4 方法\"\"\"\n    t, y = t0, list(y0)\n    ts, ys = [t], [y[:]]\n    while t < t_end:\n        k1 = f(t, y)\n        y2 = [yi + k1i/2 for yi, k1i in zip(y, k1)]\n        k2 = f(t + h/2, y2)\n        y3 = [yi + k2i/2 for yi, k2i in zip(y, k2)]\n        k3 = f(t + h/2, y3)\n        y4 = [yi + k3i for yi, k3i in zip(y, k3)]\n        k4 = f(t + h, y4)\n        y = [yi + (k1i + 2*k2i + 2*k3i + k4i)/6 for yi, k1i, k2i, k3i, k4i in zip(y, k1, k2, k3, k4)]\n        t += h\n        ts.append(t); ys.append(y[:])\n    return ts, ys\n\n# 求解单摆 t ∈ [0, 10]\nts, ys = rk4_system(f_pendulum, 0, [0.1, 0], 10, 0.1)\nprint(\"单摆方程 theta'' + theta = 0, theta(0) = 0.1, theta'(0) = 0 的数值解：\")\nprint(f\"  t = {ts[-1]:.2f} 时：theta = {ys[-1][0]:.6f}, theta' = {ys[-1][1]:.6f}\")\nprint(f\"  解析解 theta(10) = 0.1·cos(10) = {0.1*math.cos(10):.6f}\")\n",
+      "description": "四阶 Runge-Kutta 法是工程中最常用的常微分方程数值解法，具有四阶精度，稳定性好。"
+    }
+  ],
+  "questions": [
+    {"q": "求微分方程 y' = 2xy² 的通解。", "a": "这是可分离变量方程。分离变量得 dy/y² = 2x dx（y ≠ 0）。\n两边积分：-1/y = x² + C，即 y = -1/(x² + C)。\n另外 y = 0 也是解（令 C → ∞ 时的极限情形）。", "type": "计算题"},
+    {"q": "求一阶线性方程 y' + y/x = x² 的通解。", "a": "标准形式 y' + P(x)y = Q(x)，其中 P(x) = 1/x, Q(x) = x²。\n积分因子 μ(x) = e^(∫ 1/x dx) = e^(ln x) = x\n两边乘 μ：x·y' + y = x³ ⇒ d/dx (xy) = x³\n两边积分：xy = x⁴/4 + C，即 y = x³/4 + C/x", "type": "计算题"},
+    {"q": "求齐次方程 x·y' = y·ln(y/x) 的通解。", "a": "整理为 y' = (y/x)·ln(y/x)。令 u = y/x，则 y = ux, y' = u + x·du/dx。\n代入：u + x·du/dx = u·ln u ⇒ x·du/dx = u(ln u - 1)\n分离变量：du/[u(ln u - 1)] = dx/x ⇒ d(ln u)/(ln u - 1) = dx/x\n积分：ln|ln u - 1| = ln|x| + C₁ ⇒ ln u - 1 = Cx ⇒ ln(y/x) = 1 + Cx\n故 y/x = e^(1+Cx)，即 y = x·e^(1+Cx)", "type": "计算题"},
+    {"q": "求二阶常系数齐次线性方程 y'' + 2y' + 5y = 0 的通解。", "a": "特征方程 r² + 2r + 5 = 0。\n判别式 Δ = 4 - 20 = -16 < 0，有一对共轭复根：\nr = [-2 ± √(-16)]/2 = -1 ± 2i，即 α = -1, β = 2。\n通解为 y = e^(-x)·(C₁ cos 2x + C₂ sin 2x)。", "type": "计算题"},
+    {"q": "求方程 y'' - 3y' + 2y = e^x 的通解。", "a": "先求对应齐次方程 y'' - 3y' + 2y = 0 的通解：\n特征方程 r² - 3r + 2 = 0，根 r₁ = 1, r₂ = 2。齐次通解：Y = C₁e^x + C₂e^(2x)。\n\n再求非齐次特解 y*：非齐次项是 e^(λx)·P₀(x)，λ = 1 是单特征根。\n设 y* = A·x·e^x（因 λ = 1 是单根，乘以 x）。\ny*' = A·e^x + A·x·e^x = A(1+x)e^x\ny*'' = A·e^x + A(1+x)e^x = A(2+x)e^x\n代入方程：A(2+x)e^x - 3A(1+x)e^x + 2A·x·e^x = e^x\n化简：[2A + Ax - 3A - 3Ax + 2Ax]e^x = -A·e^x = e^x ⇒ A = -1。\ny* = -x·e^x\n\n通解：y = C₁e^x + C₂e^(2x) - x·e^x。", "type": "计算题"},
+    {"q": "求伯努利方程 y' + y = y²e^(-x) 的通解。", "a": "这是 n = 2 时的伯努利方程。令 z = y^(1-n) = y^(-1)，则 z' = -y^(-2)·y'。\n原方程两边除以 y²：y^(-2)·y' + y^(-1) = e^(-x)\n即 -z' + z = e^(-x)，或 z' - z = -e^(-x)。\n这是关于 z 的一阶线性方程。积分因子 μ = e^(-∫ dx) = e^(-x)。\n两边乘 μ：e^(-x)·z' - e^(-x)·z = -e^(-2x) ⇒ d/dx [e^(-x)·z] = -e^(-2x)\n积分：e^(-x)·z = (1/2)e^(-2x) + C ⇒ z = (1/2)e^(-x) + C·e^x。\n由 z = 1/y：y = 1/[C·e^x + (1/2)e^(-x)] = 2e^(-x)/(1 + 2C·e^(-2x))。", "type": "计算题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第7章 — 微分方程", "type": "教材", "difficulty": "初级", "summary": "系统介绍常微分方程的基本概念、各类一阶方程的解法以及高阶线性方程。", "why_recommend": "微分方程是微积分应用于物理、工程的核心语言。"}
+  ]
+}

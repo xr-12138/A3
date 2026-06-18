@@ -1,0 +1,82 @@
+{
+  "chapter_id": "ch08",
+  "title": "多元函数积分学",
+  "summary": "本章讲授多元函数积分学，包括二重积分与三重积分的概念、性质、计算（直角坐标、极坐标、柱面坐标、球面坐标）及其在几何与物理中的应用（面积、体积、质量、质心、转动惯量）。并简介第一类曲线积分与曲面积分。",
+  "key_points": [
+    {
+      "kp_id": "ch08_kp1",
+      "name": "二重积分的概念与性质",
+      "content": "**引入背景**：求曲顶柱体的体积。设有界闭区域 D 上 z = f(x, y) ≥ 0，求以曲面 z = f(x, y) 为顶、D 为底、母线平行于 z 轴的柱体体积。\n\n**求解步骤（分割—近似—求和—取极限）**：\n1. 将 D 任意分成 n 个小闭区域 Δσ₁, ..., Δσₙ；\n2. 在每个 Δσ_i 上任取一点 (ξ_i, η_i)，作 f(ξ_i, η_i)·Δσ_i；\n3. V ≈ Σ f(ξ_i, η_i)·Δσ_i；\n4. 令 λ = max{各小区域直径} → 0，若极限存在，则 V = lim(λ→0) Σ f(ξ_i, η_i)·Δσ_i。\n\n**二重积分的定义**：\n∬_D f(x, y) dσ = lim(λ→0) Σ f(ξ_i, η_i)·Δσ_i\n其中 dσ 称为面积元素。在直角坐标下 dσ = dx dy。\n\n**存在条件**：若 f(x, y) 在有界闭区域 D 上连续，则二重积分存在。\n\n**几何意义**：当 f(x, y) ≥ 0 时，∬_D f(x, y) dσ 表示以 D 为底、以曲面 z = f(x, y) 为顶的曲顶柱体的体积；当 f(x, y) ≤ 0 时为体积的负值。\n\n**基本性质**：\n1. 线性：∬_D (αf + βg) dσ = α∬_D f dσ + β∬_D g dσ\n2. 对积分区域的可加性：若 D = D₁ ∪ D₂，D₁ ∩ D₂ 仅边界相交，则 ∬_D f = ∬_{D₁} f + ∬_{D₂} f\n3. ∬_D k dσ = k · σ，其中 σ 为 D 的面积\n4. 单调性：若 f ≤ g，则 ∬_D f ≤ ∬_D g\n5. 估值：mσ ≤ ∬_D f ≤ Mσ，其中 m, M 为 f 在 D 上的最小、最大值\n6. 中值定理：若 f 在 D 上连续，则存在 (ξ, η) ∈ D，使 ∬_D f dσ = f(ξ, η)·σ\n7. |∬_D f dσ| ≤ ∬_D |f| dσ",
+      "difficulty": "基础",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp2",
+      "name": "二重积分的计算 — 直角坐标",
+      "content": "**基本思路**：将二重积分化为两次定积分（累次积分）。\n\n**情形一：X-型区域** — D: a ≤ x ≤ b, φ₁(x) ≤ y ≤ φ₂(x)\n∬_D f(x, y) dσ = ∫_{a}^{b} dx ∫_{φ₁(x)}^{φ₂(x)} f(x, y) dy\n\n**情形二：Y-型区域** — D: c ≤ y ≤ d, ψ₁(y) ≤ x ≤ ψ₂(y)\n∬_D f(x, y) dσ = ∫_{c}^{d} dy ∫_{ψ₁(y)}^{ψ₂(y)} f(x, y) dx\n\n**例题**：计算 ∬_D xy dσ，其中 D 由 y = x, y = 1, x = 2 围成的三角形。\nD: 1 ≤ x ≤ 2, 1 ≤ y ≤ x\n∬_D xy dσ = ∫_{1}^{2} dx ∫_{1}^{x} xy dy = ∫_{1}^{2} [x·y²/2]_{1}^{x} dx = ∫_{1}^{2} (x³/2 - x/2) dx\n= [x⁴/8 - x²/4]_{1}^{2} = (16/8 - 4/4) - (1/8 - 1/4) = (2 - 1) - (-1/8) = 1 + 1/8 = 9/8\n\n**交换积分次序**：\n将 X-型累次积分换成 Y-型，或反之。步骤：\n1. 由原累次积分上下限，用不等式表示出积分区域 D；\n2. 画出 D 的图形；\n3. 重新选择积分次序，写出新的上下限。\n\n**技巧**：\n- 积分次序的选择直接影响计算的繁简程度；\n- 某些积分如 ∫ sin(x²)/x dx, ∫ e^(x²) dx 等无初等函数表达式，必须交换积分次序才能计算；\n- 利用对称性：若 D 关于 x = 0 对称，且 f(-x, y) = -f(x, y)，则 ∬_D f = 0；若 f(-x, y) = f(x, y)，则 ∬_D f = 2∬_{D⁺} f。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp3",
+      "name": "二重积分的计算 — 极坐标",
+      "content": "**极坐标变换**：令 x = ρ cos θ, y = ρ sin θ，则 dσ = ρ dρ dθ。\n\n适用情形：当积分区域 D 是圆域、圆环域、扇形等，或被积函数含有 x² + y² 时，使用极坐标往往更方便。\n\n**极坐标下的累次积分**：\n1. **极点在 D 外**：D: α ≤ θ ≤ β, ρ₁(θ) ≤ ρ ≤ ρ₂(θ)\n∬_D f(x, y) dσ = ∫_{α}^{β} dθ ∫_{ρ₁(θ)}^{ρ₂(θ)} f(ρ cos θ, ρ sin θ) · ρ dρ\n\n2. **极点在 D 的边界上**：D: α ≤ θ ≤ β, 0 ≤ ρ ≤ ρ(θ)\n∬_D f dσ = ∫_{α}^{β} dθ ∫_{0}^{ρ(θ)} f(ρ cos θ, ρ sin θ) · ρ dρ\n\n3. **极点在 D 内**：D: 0 ≤ θ ≤ 2π, 0 ≤ ρ ≤ ρ(θ)\n∬_D f dσ = ∫_{0}^{2π} dθ ∫_{0}^{ρ(θ)} f(ρ cos θ, ρ sin θ) · ρ dρ\n\n**例题**：计算 ∬_D e^(-x²-y²) dσ，其中 D 为 x² + y² ≤ a² 的圆域。\n采用极坐标：D: 0 ≤ θ ≤ 2π, 0 ≤ ρ ≤ a\n∬_D e^(-x²-y²) dσ = ∫_{0}^{2π} dθ ∫_{0}^{a} e^(-ρ²) · ρ dρ\n= 2π · [ -e^(-ρ²)/2 ]_{0}^{a} = π(1 - e^(-a²))\n\n**重要推论 — 泊松积分**：当 a → ∞ 时，∬_{全平面} e^(-x²-y²) = π\n由此可得 ∫_{-∞}^{+∞} e^(-x²) dx = √π，这是概率论中高斯分布的基础。\n\n**记忆提示**：极坐标下不要忘记面积元素中的 ρ！即 dσ = ρ dρ dθ 而不是 dρ dθ。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp4",
+      "name": "三重积分",
+      "content": "**三重积分定义**：\n∭_Ω f(x, y, z) dV = lim(λ→0) Σ f(ξ_i, η_i, ζ_i)·ΔV_i\n其中 dV 为体积元素。直角坐标下 dV = dx dy dz。\n\n**计算方法 — 化为三次积分**：\n若 Ω 可表示为 a ≤ x ≤ b, y₁(x) ≤ y ≤ y₂(x), z₁(x, y) ≤ z ≤ z₂(x, y)，则\n∭_Ω f dV = ∫_{a}^{b} dx ∫_{y₁(x)}^{y₂(x)} dy ∫_{z₁(x, y)}^{z₂(x, y)} f(x, y, z) dz\n\n**柱面坐标**：令 x = ρ cos θ, y = ρ sin θ, z = z，体积元素 dV = ρ dρ dθ dz。\n当积分区域 Ω 在 xy 面上的投影是圆域，或被积函数含 x² + y² 时适用。\n\n**球面坐标**：令 x = r sin φ cos θ, y = r sin φ sin θ, z = r cos φ，其中\nr = √(x²+y²+z²)（原点到点的距离，0 ≤ r < ∞）\nφ = 与 z 轴正方向夹角（0 ≤ φ ≤ π）\nθ = 在 xy 面上投影与 x 轴正方向夹角（0 ≤ θ ≤ 2π）\n体积元素 dV = r² sin φ dr dφ dθ。\n当积分区域为球、球壳或被积函数含 x² + y² + z² 时适用。\n\n**例题**：求半径为 R 的球体体积。\n∭_Ω dV（1 在球面坐标：0 ≤ r ≤ R, 0 ≤ φ ≤ π, 0 ≤ θ ≤ 2π）\nV = ∫_{0}^{2π} dθ ∫_{0}^{π} sin φ dφ ∫_{0}^{R} r² dr = 2π · 2 · (R³/3) = 4πR³/3。\n\n**应用**：\n- 物体的体积 V = ∭_Ω dV\n- 物体的质量 M = ∭_Ω ρ(x, y, z) dV\n- 质心坐标 x̄ = (1/M)∭_Ω x·ρ dV，ȳ、z̄ 同理\n- 转动惯量 I_x = ∭_Ω (y²+z²)ρ dV，I_y, I_z 同理",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp5",
+      "name": "第一类曲线积分（对弧长的曲线积分）",
+      "content": "**背景**：求曲线形构件的质量。设曲线 L 上点 (x, y) 处的线密度为 ρ(x, y)，求总质量。\n\n**定义**：∫_L f(x, y) ds = lim(λ→0) Σ f(ξ_i, η_i)·Δs_i\n其中 ds 为弧长元素，恒为正。\n\n**计算方法（化为定积分）**：\n1. **参数方程**：L: x = φ(t), y = ψ(t), α ≤ t ≤ β，则\n∫_L f(x, y) ds = ∫_{α}^{β} f[φ(t), ψ(t)]·√[φ'(t)² + ψ'(t)²] dt\n注意：α < β，ds > 0。\n\n2. **直角坐标**：L: y = ψ(x), a ≤ x ≤ b，则\n∫_L f ds = ∫_{a}^{b} f[x, ψ(x)]·√[1 + ψ'(x)²] dx\n\n3. **极坐标**：L: ρ = ρ(θ), α ≤ θ ≤ β，则\n∫_L f ds = ∫_{α}^{β} f[ρ(θ)cos θ, ρ(θ)sin θ]·√[ρ(θ)² + ρ'(θ)²] dθ\n\n**推广到空间曲线**：∫_Γ f(x, y, z) ds = ∫_{α}^{β} f[φ(t), ψ(t), ω(t)]·√[φ'(t)² + ψ'(t)² + ω'(t)²] dt\n\n**性质**：\n- ∫_L (αf + βg) ds = α∫_L f ds + β∫_L g ds\n- ∫_L f ds = ∫_{L₁} f ds + ∫_{L₂} f ds（L = L₁ + L₂）\n- ∫_L ds = L 的弧长\n- f ≥ g ⇒ ∫_L f ds ≥ ∫_L g ds\n- 对称性：若 L 关于 x=0 对称，且 f(-x, y) = -f(x, y)，则 ∫_L f ds = 0\n\n*注意第一类曲线积分与积分路径的方向无关，因为 ds > 0。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp6",
+      "name": "第一类曲面积分（对面积的曲面积分）",
+      "content": "**背景**：求曲面形构件的质量。设曲面 Σ 上点 (x, y, z) 处面密度为 ρ(x, y, z)。\n\n**定义**：∬_Σ f(x, y, z) dS = lim(λ→0) Σ f(ξ_i, η_i, ζ_i)·ΔS_i\n其中 dS 为面积元素，恒为正。\n\n**计算方法（化为二重积分）**：\n设曲面 Σ 的方程 z = z(x, y)，D 为 Σ 在 xy 面上的投影区域，z(x, y) 在 D 上具有连续偏导数，则\ndS = √[1 + (∂z/∂x)² + (∂z/∂y)²] dx dy\n∬_Σ f(x, y, z) dS = ∬_D f[x, y, z(x, y)]·√[1 + (∂z/∂x)² + (∂z/∂y)²] dx dy\n\n若曲面表示为 x = x(y, z) 或 y = y(x, z)，有类似公式。\n\n**应用**：\n- 曲面面积 A = ∬_Σ dS\n- 曲面形质量 M = ∬_Σ ρ(x, y, z) dS\n- 曲面形质心 x̄ = (1/M)∬_Σ xρ dS 等\n- 曲面形转动惯量\n\n**计算面积示例**：求球面 x² + y² + z² = a² 的表面积。\n取上半球面 z = √(a² - x² - y²)，投影 D: x² + y² ≤ a²。\n∂z/∂x = -x/√(a²-x²-y²), ∂z/∂y = -y/√(a²-x²-y²)\n√[1 + (∂z/∂x)² + (∂z/∂y)²] = a/√(a²-x²-y²)\n上半球面积 = ∬_D a/√(a²-x²-y²) dx dy = ∫_{0}^{2π} dθ ∫_{0}^{a} a·ρ/√(a²-ρ²) dρ = 2πa²\n全球面面积 = 2·2πa² = 4πa²。\n\n*注意第一类曲面积分与曲面的方向无关。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch08_kp7",
+      "name": "重积分的应用",
+      "content": "**几何应用**：\n1. **平面图形面积**：A = ∬_D dσ\n2. **空间立体体积**：V = ∭_Ω dV，或 V = ∬_D [z₂(x, y) - z₁(x, y)] dσ\n3. **曲面面积**：A = ∬_D √[1 + (∂z/∂x)² + (∂z/∂y)²] dx dy\n\n**物理应用**（设密度为 ρ）：\n1. **平面薄片的质量**：M = ∬_D ρ(x, y) dσ\n2. **平面薄片的质心**：x̄ = (1/M)∬_D xρ dσ, ȳ = (1/M)∬_D yρ dσ\n3. **平面薄片的转动惯量**：\n   I_x = ∬_D y²·ρ dσ, I_y = ∬_D x²·ρ dσ, I_O = ∬_D (x²+y²)ρ dσ\n4. **空间物体的质量**：M = ∭_Ω ρ dV\n5. **空间物体的质心**：x̄ = (1/M)∭_Ω xρ dV, ȳ = (1/M)∭_Ω yρ dV, z̄ = (1/M)∭_Ω zρ dV\n6. **空间物体的转动惯量**：\n   I_x = ∭_Ω (y²+z²)ρ dV, I_y = ∭_Ω (x²+z²)ρ dV, I_z = ∭_Ω (x²+y²)ρ dV\n7. **引力**：物体对位于 (x₀, y₀, z₀) 处质量为 m 的质点的引力 (F_x, F_y, F_z)：\n   F_x = G·m ∭_Ω (x-x₀)/r³ · ρ dV，其中 r = √[(x-x₀)² + (y-y₀)² + (z-z₀)²]，G 为引力常数。\n\n**对称性的巧用**：\n- 若积分区域关于 y 轴对称（即 (x, y) ∈ D 时 (-x, y) ∈ D）：\n  - 若 f(-x, y) = -f(x, y)，则 ∬_D f dσ = 0\n  - 若 f(-x, y) = f(x, y)，则 ∬_D f dσ = 2∬_{D∩x≥0} f dσ\n- 若积分区域关于 x 轴对称，类似结论。\n- 三重积分、曲线积分、曲面积分有同样的对称性判定准则。\n\n**变量替换公式（一般情形）**：\n对二重积分，令 x = x(u, v), y = y(u, v)，设雅可比行列式 J = ∂(x, y)/∂(u, v) ≠ 0，则\n∬_D f(x, y) dx dy = ∬_{D'} f[x(u, v), y(u, v)]·|J| du dv\n其中 D' 是 D 在 uv 平面上的像。\n\n*极坐标是上述公式的特例：x = ρ cos θ, y = ρ sin θ，J = ρ。*",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "蒙特卡洛法计算二重积分",
+      "language": "python",
+      "code": "import random, math\n\ndef monte_carlo_double_integral(f, x_min, x_max, y_min, y_max, n=1000000):\n    \"\"\"用蒙特卡洛法计算矩形区域 [x_min, x_max]×[y_min, y_max] 上的二重积分\n    ∬_D f(x, y) dσ\n    原理：∬_D f ≈ (b-a)(d-c)/n · Σ f(x_i, y_i)\"\"\"\n    dx = x_max - x_min\n    dy = y_max - y_min\n    area = dx * dy\n    total = 0.0\n    for _ in range(n):\n        x = x_min + dx * random.random()\n        y = y_min + dy * random.random()\n        total += f(x, y)\n    return area * total / n\n\n# 例：∬_{D} e^(-x²-y²) dσ，D = [-1, 1]×[-1, 1]\nf = lambda x, y: math.exp(-x**2 - y**2)\nresult = monte_carlo_double_integral(f, -1, 1, -1, 1, 500000)\nprint(\"蒙特卡洛估计 ∬_{[-1,1]^2} e^(-x²-y²) dσ ≈\", round(result, 6))\n\n# 精确值 = (∫_{-1}^{1} e^(-x²) dx)^2 = (√π·erf(1))^2\nimport math\nerf1 = math.erf(1)\nexact = (math.sqrt(math.pi) * erf1) ** 2\nprint(\"精确值 =\", round(exact, 6))\n\n# 例：计算单位圆 x² + y² ≤ 1 的面积\nf2 = lambda x, y: 1.0 if x**2 + y**2 <= 1 else 0.0\narea_circle = monte_carlo_double_integral(f2, -1, 1, -1, 1, 1000000)\nprint(f\"\\n单位圆面积蒙特卡洛估计 ≈ {area_circle:.6f}, 精确值 π = {math.pi:.6f}\")\n",
+      "description": "蒙特卡洛方法基于大数定律，是高维积分的重要工具，尤其在难以求出解析解时。"
+    },
+    {
+      "title": "数值二重积分 — 累次积分法",
+      "language": "python",
+      "code": "def simpson1d(f, a, b, n=50):\n    \"\"\"Simpson 求积公式（1D）\"\"\"\n    h = (b - a) / n\n    s = f(a) + f(b)\n    for k in range(1, n):\n        x = a + k * h\n        s += 2 * f(x) if k % 2 == 0 else 4 * f(x)\n    return s * h / 3.0\n\ndef double_integral_simpson(f, x_min, x_max, y_min, y_max, n=40, m=40):\n    \"\"\"二维 Simpson 公式（累次）：先对 y 积分再对 x 积分\"\"\"\n    hx = (x_max - x_min) / n\n    total = 0.0\n    for i in range(n + 1):\n        x = x_min + i * hx\n        # 对 y 做 1D Simpson\n        def g(y):\n            return f(x, y)\n        inner = simpson1d(g, y_min, y_max, m)\n        # Simpson 对 x 方向的权\n        w = 4 if i % 2 == 1 else 2\n        if i == 0 or i == n:\n            w = 1\n        total += w * inner\n    return total * hx / 3.0\n\n# 例：∬_{[0,1]×[0,1]} sin(πxy) dσ\nimport math\nf = lambda x, y: math.sin(math.pi * x * y)\nres = double_integral_simpson(f, 0, 1, 0, 1, 40, 40)\nprint(f\"∬_{[0,1]×[0,1]} sin(πxy) dσ ≈ {res:.6f}\")\n\n# 例：计算曲顶柱体体积 V = ∬_{x²+y² ≤ 1} (4 - x² - y²) dσ\ndef f_curved(x, y):\n    if x**2 + y**2 <= 1:\n        return 4 - x**2 - y**2\n    return 0.0\n\nvol = double_integral_simpson(f_curved, -1, 1, -1, 1, 80, 80)\nprint(f\"\\n曲顶柱体体积数值 = {vol:.6f}\")\nprint(f\"解析解: ∫∫_{x²+y²≤1} (4-x²-y²) dσ\")\nprint(f\"极坐标: ∫_{0}^{2π} dθ ∫_{0}^{1} (4-ρ²)·ρ dρ = 2π·[2ρ² - ρ⁴/4]_0^1\")\nprint(f\"       = 2π·(2 - 1/4) = 2π·(7/4) = 7π/2 ≈ {7*math.pi/2:.6f}\")\n",
+      "description": "基于 Simpson 公式的二维数值积分，对光滑函数具有高阶精度。"
+    }
+  ],
+  "questions": [
+    {"q": "计算 ∬_D (x² + y²) dσ，其中 D: 0 ≤ x ≤ a, 0 ≤ y ≤ b。", "a": "∬_D (x² + y²) dσ = ∫_{0}^{a} dx ∫_{0}^{b} (x² + y²) dy\n= ∫_{0}^{a} [x²y + y³/3]_{0}^{b} dx = ∫_{0}^{a} (b x² + b³/3) dx\n= b·a³/3 + b³/3·a = ab(a² + b²)/3", "type": "计算题"},
+    {"q": "交换积分次序：∫_{0}^{1} dx ∫_{x}^{√x} f(x, y) dy。", "a": "原积分区域 D: 0 ≤ x ≤ 1, x ≤ y ≤ √x。\n注意：x ≤ √x 仅当 0 ≤ x ≤ 1 成立。D 由 y = x 与 y = √x 围成。\n用不等式 y ∈ [0, 1], y² ≤ x ≤ y 表示。\n交换积分次序：∫_{0}^{1} dy ∫_{y²}^{y} f(x, y) dx。", "type": "分析题"},
+    {"q": "用极坐标计算 ∬_D (x² + y²) dσ，其中 D 为 x² + y² ≤ R² 的圆域。", "a": "极坐标下 D: 0 ≤ θ ≤ 2π, 0 ≤ ρ ≤ R。\n∬_D (x² + y²) dσ = ∫_{0}^{2π} dθ ∫_{0}^{R} ρ² · ρ dρ = 2π · [ρ⁴/4]_{0}^{R} = 2π · R⁴/4 = πR⁴/2。", "type": "计算题"},
+    {"q": "求由曲面 z = x² + y² 与 z = 4 所围成的空间立体体积。", "a": "联立 z = x² + y² 与 z = 4，交线在 xy 面上的投影为 x² + y² = 4。\n体积 V = ∬_{D: x²+y²≤4} (4 - (x² + y²)) dσ\n用极坐标：D: 0 ≤ θ ≤ 2π, 0 ≤ ρ ≤ 2\nV = ∫_{0}^{2π} dθ ∫_{0}^{2} (4 - ρ²)·ρ dρ = 2π·[2ρ² - ρ⁴/4]_{0}^{2} = 2π·(8 - 4) = 8π。", "type": "应用题"},
+    {"q": "求半径为 R 的均匀圆形薄板（密度 ρ 为常数）对其直径的转动惯量。", "a": "设薄板为 D: x² + y² ≤ R²，密度 ρ。对直径（取为 x 轴）的转动惯量\nI_x = ∬_D y²·ρ dσ\n用极坐标：y = ρ sin θ, dσ = ρ dρ dθ\nI_x = ρ ∫_{0}^{2π} dθ ∫_{0}^{R} (ρ² sin² θ)·ρ dρ = ρ ∫_{0}^{2π} sin² θ dθ · ∫_{0}^{R} ρ³ dρ\n= ρ · π · R⁴/4 = (1/4)πρR⁴。\n薄板质量 M = ρ · πR²，故 I_x = (1/4)MR²。", "type": "应用题"},
+    {"q": "计算对弧长的曲线积分 ∫_L (x² + y²) ds，其中 L 为 x² + y² = a² 的上半圆。", "a": "L 的参数方程：x = a cos t, y = a sin t，0 ≤ t ≤ π。\ndx/dt = -a sin t, dy/dt = a cos t，ds = √[a² sin² t + a² cos² t] dt = a dt。\n∫_L (x² + y²) ds = ∫_{0}^{π} a² · a dt = a³ · π = πa³。", "type": "计算题"},
+    {"q": "用对称性求 ∬_D |x| + |y| dσ，其中 D: x² + y² ≤ 1。", "a": "D 关于 x 轴、y 轴均对称，|x| + |y| 对 x 与 y 均为偶函数，故\n∬_D (|x| + |y|) dσ = 4∬_{D₁} (x + y) dσ，其中 D₁ 为第一象限部分。\n由对称性 ∬_{D₁} x dσ = ∬_{D₁} y dσ，故\n= 4·2·∬_{D₁} x dσ = 8·∫_{0}^{π/2} cos θ dθ ∫_{0}^{1} ρ·ρ dρ = 8·1·(1/3) = 8/3。", "type": "分析题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第9-10章 — 重积分、曲线积分与曲面积分", "type": "教材", "difficulty": "初级", "summary": "详细讲解二重积分、三重积分、曲线积分与曲面积分的定义、计算方法与应用。", "why_recommend": "重点掌握各种积分的计算方法与坐标系的选择技巧。"}
+  ]
+}

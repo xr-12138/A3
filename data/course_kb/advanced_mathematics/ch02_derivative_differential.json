@@ -1,0 +1,75 @@
+{
+  "chapter_id": "ch02",
+  "title": "导数与微分",
+  "summary": "本章从实际问题（切线斜率、瞬时速度）出发，抽象出导数的定义，系统讲授求导法则（四则运算、反函数、复合函数）、高阶导数、隐函数与参数方程求导，最后引入微分概念并讨论其在近似计算中的应用。",
+  "key_points": [
+    {
+      "kp_id": "ch02_kp1",
+      "name": "导数概念",
+      "content": "**定义**：设函数 y = f(x) 在点 x₀ 的某邻域内有定义，当自变量在 x₀ 处取得增量 Δx（点 x₀ + Δx 仍在该邻域内）时，相应地函数取得增量 Δy = f(x₀+Δx) - f(x₀)。若极限\n\nlim(Δx→0) Δy/Δx = lim(Δx→0) [f(x₀+Δx) - f(x₀)] / Δx\n\n存在，则称函数 y = f(x) 在点 x₀ 处可导，并称这个极限为函数 y = f(x) 在点 x₀ 处的导数，记作 f'(x₀) 或 dy/dx|_{x=x₀}。\n\n**等价形式**：f'(x₀) = lim(x→x₀) [f(x) - f(x₀)] / (x - x₀)\n\n**左导数与右导数**：\nf'₋(x₀) = lim(Δx→0⁻) [f(x₀+Δx) - f(x₀)]/Δx（左导数）\nf'₊(x₀) = lim(Δx→0⁺) [f(x₀+Δx) - f(x₀)]/Δx（右导数）\nf'(x₀) 存在 ⟺ f'₋(x₀) = f'₊(x₀)\n\n**可导与连续的关系**：可导 ⟹ 连续，但反之不成立。\n反例：f(x) = |x| 在 x = 0 处连续但不可导。\n\n**几何意义**：f'(x₀) 是曲线 y = f(x) 在点 (x₀, f(x₀)) 处切线的斜率。\n切线方程：y - f(x₀) = f'(x₀)(x - x₀)\n法线方程：y - f(x₀) = -1/f'(x₀)·(x - x₀) （f'(x₀) ≠ 0）\n\n**物理意义**：若 s = s(t) 表示位移关于时间的函数，则 s'(t₀) 为 t₀ 时刻的瞬时速度。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch02_kp2",
+      "name": "基本初等函数的导数公式",
+      "content": "以下是常用的基本求导公式（需熟练记忆）：\n\n1. (C)' = 0 （常数的导数为零）\n2. (x^μ)' = μ·x^(μ-1)\n3. (sin x)' = cos x\n4. (cos x)' = -sin x\n5. (tan x)' = sec²x = 1/cos²x\n6. (cot x)' = -csc²x = -1/sin²x\n7. (sec x)' = sec x · tan x\n8. (csc x)' = -csc x · cot x\n9. (a^x)' = a^x · ln a （a > 0, a ≠ 1）\n10. (e^x)' = e^x\n11. (log_a x)' = 1/(x·ln a)\n12. (ln x)' = 1/x\n13. (arcsin x)' = 1/√(1-x²)\n14. (arccos x)' = -1/√(1-x²)\n15. (arctan x)' = 1/(1+x²)\n16. (arccot x)' = -1/(1+x²)\n\n这些公式是求导运算的基础，后续所有求导都是通过法则归结为这些基本公式。",
+      "difficulty": "基础",
+      "teaching_hours": 1
+    },
+    {
+      "kp_id": "ch02_kp3",
+      "name": "函数的求导法则",
+      "content": "**法则一：函数的和、差、积、商的求导法则**\n设 u = u(x), v = v(x) 都可导，则：\n1. (u ± v)' = u' ± v'\n2. (Cu)' = Cu' （C 为常数）\n3. (uv)' = u'v + uv'  —— 乘积法则（莱布尼茨法则）\n4. (u/v)' = (u'v - uv')/v² （v ≠ 0）\n\n乘积法则的推广：(uvw)' = u'vw + uv'w + uvw'\n\n**法则二：反函数的求导法则**\n若 x = φ(y) 在某区间 I_y 内单调、可导且 φ'(y) ≠ 0，则其反函数 y = f(x) 在对应区间 I_x 内也可导，且 f'(x) = 1/φ'(y)。\n即：dy/dx = 1/(dx/dy)\n\n**法则三：复合函数的求导法则（链式法则 Chain Rule）**\n若 y = f(u)，u = g(x)，且 f(u)、g(x) 都可导，则复合函数 y = f(g(x)) 可导，且 dy/dx = dy/du · du/dx = f'(u)·g'(x)。\n\n推广到多个中间变量：y = f(u), u = g(v), v = h(x)，则 dy/dx = f'(u)·g'(v)·h'(x)。\n\n**示例**：求 y = e^(sin²(1/x)) 的导数：\n令 y = e^u, u = v², v = sin w, w = 1/x，则\ny' = e^u · 2v · cos w · (-1/x²) = e^(sin²(1/x)) · 2 sin(1/x) · cos(1/x) · (-1/x²)\n= -(1/x²) · sin(2/x) · e^(sin²(1/x))",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch02_kp4",
+      "name": "高阶导数",
+      "content": "**定义**：若函数 y = f(x) 的导数 y' = f'(x) 仍是可导函数，则称 (f'(x))' 为 f(x) 的二阶导数，记作 f''(x)、y'' 或 d²y/dx²。\n一般地，n 阶导数记为 f⁽ⁿ⁾(x) 或 dⁿy/dxⁿ。\n\n**常用的高阶导数公式**：\n1. (xⁿ)⁽ⁿ⁾ = n!；(xⁿ)⁽ᵏ⁾ = 0 当 k > n\n2. (eˣ)⁽ⁿ⁾ = eˣ\n3. (aˣ)⁽ⁿ⁾ = aˣ · (ln a)ⁿ\n4. (sin x)⁽ⁿ⁾ = sin(x + n·π/2)\n5. (cos x)⁽ⁿ⁾ = cos(x + n·π/2)\n6. (ln(1+x))⁽ⁿ⁾ = (-1)^(n-1) · (n-1)! / (1+x)ⁿ\n7. (1/(1+x))⁽ⁿ⁾ = (-1)ⁿ · n! / (1+x)^(n+1)\n\n**莱布尼茨公式（乘积的高阶导数）**：\n(uv)⁽ⁿ⁾ = Σ(k=0到n) C(n,k) · u⁽ⁿ⁻ᵏ⁾ · v⁽ᵏ⁾\n其中 C(n,k) 为组合数 n!/(k!(n-k)!)。\n\n**例**：(x·eˣ)⁽ⁿ⁾ = eˣ(x + n)（利用莱布尼茨公式或归纳法）",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch02_kp5",
+      "name": "隐函数与参数方程的导数",
+      "content": "**隐函数求导法**：由方程 F(x, y) = 0 所确定的函数 y = y(x) 称为隐函数。求导时将方程两边对 x 求导，注意 y 是 x 的函数（需用链式法则），然后解出 dy/dx。\n\n**例**：求由 x² + y² = 1 确定的 y = y(x) 的导数：\n两边对 x 求导：2x + 2y·y' = 0 ⟹ y' = -x/y。\n\n**对数求导法**：对形如 y = u(x)^v(x) 或多个因子乘除的函数，先取对数再求导。\n\n**例**：求 y = x^sin x 的导数：\nln y = sin x · ln x\n两边对 x 求导：(1/y)·y' = cos x · ln x + (sin x)/x\n故 y' = x^sin x [cos x · ln x + (sin x)/x]\n\n**参数方程的求导法**：设 x = φ(t), y = ψ(t) 都可导且 φ'(t) ≠ 0，则 dy/dx = ψ'(t)/φ'(t) = (dy/dt)/(dx/dt)。\n\n**二阶导数**：d²y/dx² = d/dx(dy/dx) = [d/dt(dy/dx)] / (dx/dt)\n注意：d²y/dx² ≠ ψ''(t)/φ''(t)！",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    },
+    {
+      "kp_id": "ch02_kp6",
+      "name": "微分及其应用",
+      "content": "**定义**：设函数 y = f(x) 在某区间内有定义，x₀ 及 x₀+Δx 在这区间内。若增量 Δy = f(x₀+Δx) - f(x₀) 可表示为 Δy = A·Δx + o(Δx)，其中 A 是不依赖于 Δx 的常数，则称函数 y = f(x) 在点 x₀ 是可微的，而 A·Δx 叫做函数 y = f(x) 在点 x₀ 相应于自变量增量 Δx 的微分，记作 dy = A·Δx。\n\n**可微 ⟺ 可导**：且 dy = f'(x₀)·Δx = f'(x₀) dx（因 dx = Δx）\n\n**几何意义**：函数 y = f(x) 在 x₀ 处的微分 dy 是曲线在该点处切线的纵坐标的增量。当 |Δx| 很小时，|Δy - dy| 是比 Δx 高阶的无穷小，即 \"以直代曲\"。\n\n**微分的运算法则**：\nd(u ± v) = du ± dv\nd(Cu) = C du\nd(uv) = v du + u dv\nd(u/v) = (v du - u dv)/v²\n复合函数：d f(u) = f'(u) du（微分形式不变性）\n\n**近似计算**：\n当 |Δx| 很小时，Δy ≈ dy = f'(x₀)·Δx\n即 f(x₀+Δx) ≈ f(x₀) + f'(x₀)·Δx\n\n常用近似公式（|x| 很小）：\nsin x ≈ x，tan x ≈ x，eˣ ≈ 1+x，ln(1+x) ≈ x，√(1+x) ≈ 1 + x/2\n\n**误差估计**：设 y = f(x)，若 x 的绝对误差限为 δ_x，则 y 的绝对误差限 δ_y ≈ |f'(x)|·δ_x，相对误差限 δ_y/|y| ≈ |f'(x)/f(x)|·δ_x。",
+      "difficulty": "重点",
+      "teaching_hours": 2
+    }
+  ],
+  "code_examples": [
+    {
+      "title": "数值微分（有限差分法）",
+      "language": "python",
+      "code": "import math\n\ndef numerical_derivative(f, x, h=1e-5):\n    \"\"\"用中心差分近似求导： f'(x) ≈ [f(x+h) - f(x-h)] / (2h)\n    前向差分： [f(x+h) - f(x)] / h   截断误差 O(h)\n    中心差分： [f(x+h) - f(x-h)] / (2h)   截断误差 O(h^2)\"\"\"\n    return (f(x + h) - f(x - h)) / (2 * h)\n\n# 例：f(x) = sin(x)，解析导数 f'(x) = cos(x)\nx = math.pi / 4\nf = math.sin\nf_prime = math.cos\n\nnum_d = numerical_derivative(f, x)\nanalytic_d = f_prime(x)\n\nprint(f\"f(x) = sin(x), x = pi/4 = {x:.6f}\")\nprint(f\"解析导数值 cos(x) = {analytic_d:.8f}\")\nprint(f\"中心差分数值导数 = {num_d:.8f}\")\nprint(f\"绝对误差 = {abs(num_d - analytic_d):.10f}\")\n\n# 比较 h 变化对精度的影响\nprint(\"\\n不同步长 h 的误差：\")\nfor h in [1e-2, 1e-4, 1e-6, 1e-8, 1e-10]:\n    d = numerical_derivative(f, x, h)\n    print(f\"  h = {h:g}, 数值导数 = {d:.10f}, 误差 = {abs(d - analytic_d):.10f}\")\n",
+      "description": "用有限差分法实现数值求导，是科学计算中求导的基本方法。注意观察 h 过小导致舍入误差增大的现象。"
+    },
+    {
+      "title": "牛顿迭代法求方程的根",
+      "language": "python",
+      "code": "def newton_method(f, f_prime, x0, tol=1e-10, max_iter=100):\n    \"\"\"牛顿迭代法：x_{n+1} = x_n - f(x_n)/f'(x_n)\n    这是导数在科学计算中的重要应用。\"\"\"\n    x = x0\n    for i in range(max_iter):\n        fx = f(x)\n        if abs(fx) < tol:\n            return x, i+1\n        fpx = f_prime(x)\n        if fpx == 0:\n            return None, i+1  # 导数为零，方法失败\n        x = x - fx / fpx\n    return None, max_iter\n\n# 例：求 e^x - 2 = 0 的根，即 x = ln 2\nf = lambda x: math.exp(x) - 2\nf_prime = lambda x: math.exp(x)  # 解析导数\n\nroot, iters = newton_method(f, f_prime, 1.0)\nprint(f\"e^x - 2 = 0 的根: {root:.12f}\")\nprint(f\"迭代次数: {iters}\")\nprint(f\"ln 2 真值: {math.log(2):.12f}\")\nprint(f\"代入验证: e^{root:.6f} - 2 = {math.exp(root) - 2:.12f}\")\n",
+      "description": "牛顿迭代法利用导数构造一个收敛到方程根的序列，是求根问题最重要的数值方法之一，其平方收敛速度极快。"
+    }
+  ],
+  "questions": [
+    {"q": "求 y = x³ + 2x² - 5x + 1 的导数 y'。", "a": "y' = (x³)' + (2x²)' - (5x)' + (1)' = 3x² + 4x - 5", "type": "计算题"},
+    {"q": "求 y = e^(2x) · cos x 的导数 y'。", "a": "使用乘积法则：\ny' = (e^(2x))'·cos x + e^(2x)·(cos x)'\n= 2e^(2x)·cos x + e^(2x)·(-sin x)\n= e^(2x)(2 cos x - sin x)", "type": "计算题"},
+    {"q": "求 y = ln(sin x) 的导数 y'。", "a": "使用链式法则，令 u = sin x，y = ln u：\ny' = (1/u) · cos x = (cos x)/(sin x) = cot x", "type": "计算题"},
+    {"q": "求由方程 xy = e^(x+y) 确定的隐函数 y = y(x) 的导数 dy/dx。", "a": "两边对 x 求导（注意 y 是 x 的函数）：\ny + x·y' = e^(x+y) · (1 + y')\n整理：x·y' - e^(x+y)·y' = e^(x+y) - y\n y'·[x - e^(x+y)] = e^(x+y) - y\n故 dy/dx = [e^(x+y) - y] / [x - e^(x+y)]\n注意由原方程 e^(x+y) = xy，可简化为 dy/dx = (xy - y)/(x - xy) = y(x-1)/[x(1-y)]", "type": "计算题"},
+    {"q": "求 y = sin 2x 的 n 阶导数 y⁽ⁿ⁾。", "a": "利用 (sin x)⁽ⁿ⁾ = sin(x + n·π/2) 的推广：\ny' = 2 cos 2x = 2 sin(2x + π/2)\ny'' = 4(-sin 2x) = 4 sin(2x + π) = 2² sin(2x + 2·π/2)\ny''' = -8 cos 2x = 2³ sin(2x + 3·π/2)\n归纳可得：y⁽ⁿ⁾ = 2ⁿ · sin(2x + n·π/2)", "type": "计算题"},
+    {"q": "利用微分求 √1.02 的近似值。", "a": "设 f(x) = √x，取 x₀ = 1，Δx = 0.02，则\nf(x₀+Δx) ≈ f(x₀) + f'(x₀)·Δx\nf(x₀) = f(1) = √1 = 1\nf'(x) = 1/(2√x), f'(x₀) = 1/2\n故 √1.02 ≈ 1 + (1/2)(0.02) = 1 + 0.01 = 1.01\n精确值：√1.02 ≈ 1.00995，相对误差约 5×10⁻⁵。", "type": "应用题"},
+    {"q": "设 f(x) 在 x = a 处可导，求 lim(h→0) [f(a+h) - f(a-h)]/(2h)。", "a": "lim(h→0) [f(a+h) - f(a-h)]/(2h)\n= lim(h→0) {[f(a+h)-f(a)] + [f(a)-f(a-h)]}/(2h)\n= (1/2) lim(h→0) [f(a+h)-f(a)]/h + (1/2) lim(h→0) [f(a)-f(a-h)]/h\n= (1/2) f'(a) + (1/2) f'(a) = f'(a)", "type": "证明题"}
+  ],
+  "reading_materials": [
+    {"title": "同济大学《高等数学》第2章 — 导数与微分", "type": "教材", "difficulty": "初级", "summary": "从几何与物理问题引出导数概念，系统讲授求导法则与微分的应用。", "why_recommend": "配合课堂学习使用，例题丰富。"}
+  ]
+}
