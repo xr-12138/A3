@@ -3,6 +3,28 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from src.api.base import BaseAIClient
+from src.core.knowledge_base import get_knowledge_base
+
+
+def _kb_context(topic: str, max_chars: int = 1200) -> str:
+    """从知识库获取与主题相关的参考内容，用于增强AI生成"""
+    try:
+        kb = get_knowledge_base()
+        matches = kb.search_knowledge_point(topic)
+        if not matches:
+            return ""
+        pieces = []
+        for m in matches[:4]:
+            name = m.get("kp_name", "")
+            chapter = m.get("chapter_title", "")
+            content = m.get("content", "")
+            if name and content:
+                pieces.append(f"[{chapter}] {name}: {content[:300]}")
+        if pieces:
+            return "\n\n以下是课程知识库中与「" + topic + "」相关的参考内容，请在生成时结合以下知识点：\n" + "\n---\n".join(pieces)
+        return ""
+    except Exception:
+        return ""
 
 
 class DocumentAgent:
@@ -10,7 +32,8 @@ class DocumentAgent:
         self.ai = ai_client
 
     def run(self, topic: str) -> str:
-        prompt = f"请为主题 \"{topic}\" 生成一份教学文档，要点清晰，层次分明。"
+        kb_ref = _kb_context(topic)
+        prompt = f"请为主题「{topic}」生成一份教学文档，要求结构清晰、要点分明，符合高校数据结构课程教学风格。{kb_ref}"
         return self.ai.generate_text(prompt)
 
 
@@ -21,7 +44,8 @@ class MindmapAgent:
     def run(self, topic: str) -> Dict:
         # 规范化不同 AI 客户端可能返回的思维导图格式，最终确保返回结构为
         # {"title": "...", "children": [ {"title": "...", "children": [...]}, ... ]}
-        raw = self.ai.generate_mindmap(topic)
+        kb_ref = _kb_context(topic)
+        raw = self.ai.generate_mindmap(topic + (f"（参考课程知识：{kb_ref}）" if kb_ref else ""))
 
         # 如果客户端返回的是字符串，尝试解析为 JSON
         try:
@@ -108,7 +132,8 @@ class QuestionBankAgent:
         self.ai = ai_client
 
     def run(self, topic: str, num: int = 5) -> List[Dict[str, str]]:
-        return self.ai.generate_questions(topic, num)
+        kb_ref = _kb_context(topic)
+        return self.ai.generate_questions(topic + (f"（请结合课程知识：{kb_ref}）" if kb_ref else ""), num)
 
 
 class CodeAgent:
@@ -116,7 +141,9 @@ class CodeAgent:
         self.ai = ai_client
 
     def run(self, topic: str, language: str = "python") -> str:
-        return self.ai.generate_code(topic, language=language)
+        kb_ref = _kb_context(topic)
+        enriched_topic = topic + (f"（请结合课程知识：{kb_ref}）" if kb_ref else "")
+        return self.ai.generate_code(enriched_topic, language=language)
 
 
 class ReadingMaterialAgent:
@@ -126,19 +153,21 @@ class ReadingMaterialAgent:
 
     def run(self, topic: str) -> list:
         """为指定主题生成拓展阅读材料列表
-        
+
         Args:
             topic: 课程主题或知识点
-            
+
         Returns:
             结构化的阅读材料列表，每项包含：title, type, summary, difficulty, order, link
         """
+        kb_ref = _kb_context(topic)
+        enriched_topic = topic + (f"（参考课程知识：{kb_ref}）" if kb_ref else "")
         try:
-            return self.ai.generate_reading_material(topic)
+            return self.ai.generate_reading_material(enriched_topic)
         except Exception:
             # 回退为之前的文本提示（兼容旧的 AI 客户端实现）
             prompt = (
-                f"请为高校课程主题'{topic}'生成一份拓展阅读材料列表，返回中文文本或 Markdown。"
+                f"请为高校课程主题'{enriched_topic}'生成一份拓展阅读材料列表，返回中文文本或 Markdown。"
                 "每条推荐应包含：1) 标题；2) 资源类型（书籍/论文/博客/视频/教程）；"
                 "3) 不超过120字的摘要或为何推荐该资源；4) 难度标签（初级/中级/高级）；"
                 "5) 推荐顺序或学习阶段；如有可用链接或 DOI 请一并提供。"

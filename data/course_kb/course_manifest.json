@@ -1,0 +1,46 @@
+{
+  "course_name": "数据结构",
+  "course_name_en": "Data Structures",
+  "course_level": "本科",
+  "target_major": "计算机科学与技术 / 软件工程",
+  "semester": "大二第一学期",
+  "total_hours": 64,
+  "description": "本课程系统介绍数据结构的基本概念、常用算法及典型应用，涵盖线性结构、树形结构、图形结构、查找与排序五大模块。通过理论学习与编程实践，培养学生的计算思维与算法设计能力。",
+  "prerequisites": [
+    "C/C++ 程序设计",
+    "离散数学",
+    "计算机组成原理（推荐）"
+  ],
+  "textbooks": [
+    {"title": "数据结构（C++语言版）", "author": "邓俊辉", "publisher": "清华大学出版社", "edition": "第3版"},
+    {"title": "算法导论", "author": "Thomas H. Cormen 等", "publisher": "机械工业出版社", "edition": "第3版"},
+    {"title": "数据结构与算法分析", "author": "Mark Allen Weiss", "publisher": "机械工业出版社", "edition": "原书第3版"}
+  ],
+  "chapters": [
+    {"id": "ch01", "title": "绪论", "hours": 4, "file": "ch01_introduction.json",
+     "knowledge_points": ["数据结构的基本概念", "抽象数据类型ADT", "算法分析基础", "时间复杂度", "空间复杂度"]},
+    {"id": "ch02", "title": "线性表", "hours": 8, "file": "ch02_linear_list.json",
+     "knowledge_points": ["线性表的定义", "顺序表", "单链表", "双向链表", "循环链表", "链表的典型应用"]},
+    {"id": "ch03", "title": "栈与队列", "hours": 6, "file": "ch03_stack_queue.json",
+     "knowledge_points": ["栈的定义与实现", "栈的应用", "括号匹配", "表达式求值", "队列的定义与实现", "循环队列", "双端队列"]},
+    {"id": "ch04", "title": "串、数组与广义表", "hours": 4, "file": "ch04_string_array.json",
+     "knowledge_points": ["字符串的存储与操作", "KMP模式匹配算法", "数组的存储", "稀疏矩阵", "广义表", "字典树Trie"]},
+    {"id": "ch05", "title": "树与二叉树", "hours": 10, "file": "ch05_tree.json",
+     "knowledge_points": ["树的定义与术语", "二叉树的性质", "二叉树的存储结构", "二叉树的遍历", "线索二叉树", "树与森林", "哈夫曼树与编码"]},
+    {"id": "ch06", "title": "图", "hours": 8, "file": "ch06_graph.json",
+     "knowledge_points": ["图的基本概念", "图的存储结构", "图的遍历DFS/BFS", "最小生成树Prim/Kruskal", "最短路径Dijkstra/Floyd", "拓扑排序", "关键路径", "并查集"]},
+    {"id": "ch07", "title": "查找", "hours": 8, "file": "ch07_search.json",
+     "knowledge_points": ["顺序查找", "折半查找", "二叉排序树", "平衡二叉树AVL", "红黑树", "B树与B+树", "跳表", "哈希表与哈希函数", "冲突处理方法"]},
+    {"id": "ch08", "title": "排序", "hours": 8, "file": "ch08_sort.json",
+     "knowledge_points": ["排序的基本概念", "插入排序", "交换排序冒泡/快速", "选择排序简单选择/堆排序", "归并排序", "基数排序", "外部排序概述", "各种排序算法的比较"]},
+    {"id": "ch09", "title": "文件与外存结构", "hours": 4, "file": "ch09_file.json",
+     "knowledge_points": ["文件的基本概念", "顺序文件", "索引文件", "散列文件", "多级索引"]}
+  ],
+  "evaluation": {
+    "attendance": 10,
+    "homework": 20,
+    "experiments": 20,
+    "midterm": 20,
+    "final": 30
+  }
+}

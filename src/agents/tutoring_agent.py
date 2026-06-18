@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import re
 from typing import Dict, Any
 
 from src.api.base import BaseAIClient
+from src.core.knowledge_base import get_knowledge_base
 
 
 class TutoringAgent:
@@ -12,6 +14,19 @@ class TutoringAgent:
         self.ai = ai_client
 
     def run(self, question: str) -> Dict[str, Any]:
+        # 从课程知识库获取相关参考内容
+        kb_hint = ""
+        try:
+            kb = get_knowledge_base()
+            matches = kb.search_knowledge_point(question)
+            if matches:
+                ref_pieces = []
+                for m in matches[:3]:
+                    ref_pieces.append(f"- [{m.get('chapter_title', '')}] {m.get('kp_name', '')}: {m.get('content', '')[:200]}")
+                kb_hint = "\n\n【课程知识库参考】以下是相关章节内容，可在答题时作为权威依据：\n" + "\n".join(ref_pieces)
+        except Exception:
+            pass
+
         # 构造指令，要求返回简洁美观的中文 Markdown 格式回复，包含：简要回答、分步解答、示例（如适用）、参考/拓展
         instruction = (
             "请作为专业的中文教学助理回答下面的问题，要求：\n"
@@ -24,7 +39,8 @@ class TutoringAgent:
             "   - **参考/拓展**：给出1-3条参考方向或关键词。\n"
             "4) 不要包含任何奇怪的符号、重复的字符或与问题无关的内容。\n"
             "5) 回复要简洁美观，避免冗长的说明和不必要的修饰。\n"
-            "6) 确保答案的逻辑性和连贯性，便于学生理解。\n\n"
+            "6) 确保答案的逻辑性和连贯性，便于学生理解。\n"
+            + kb_hint + "\n\n"
             "问题：\n" + question
         )
 
