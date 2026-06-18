@@ -62,8 +62,8 @@ def sidebar_nav() -> str:
         
         st.markdown('<div class="sidebar-title">📚 个性化学习智能体</div>', unsafe_allow_html=True)
         
-        pages = ["课程知识库", "画像构建", "多模态资源生成", "个性化学习路径", "智能辅导"]
-        icons = ["📚", "👤", "📦", "🗺️", "💬"]
+        pages = [ "画像构建", "多模态资源生成", "个性化学习路径", "智能辅导","课程知识库"]
+        icons = [ "👤", "📦", "🗺️", "💬","📚"]
         
         selected_page = st.session_state.get('selected_page', pages[0])
         
