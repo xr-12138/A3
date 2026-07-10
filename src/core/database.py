@@ -14,7 +14,9 @@ import os
 class Database:
     def __init__(self, db_path: Optional[str] = None):
         if db_path is None:
-            db_path = "/home/hjj/桌面/A3-main/data/user_profiles/profiles.db"
+            # 使用项目根目录下的 data/user_profiles/profiles.db
+            project_root = Path(__file__).resolve().parent.parent.parent
+            db_path = str(project_root / "data" / "user_profiles" / "profiles.db")
         self.db_path = str(Path(db_path).expanduser())
         parent = Path(self.db_path).parent
         parent.mkdir(parents=True, exist_ok=True)

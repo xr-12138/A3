@@ -9,6 +9,12 @@ import requests
 
 from .base import BaseAIClient
 import re
+import sys as _sys
+
+def _p(*a, **kw):
+    """Safe print — stderr, ignores broken pipe."""
+    try: print(*a, **kw, file=_sys.stderr)
+    except: pass
 
 
 # Error kind tags used to produce deterministic, user-facing messages.
@@ -71,12 +77,12 @@ class OpenAIClient(BaseAIClient):
                 source = "file (config/.env)"
             else:
                 source = "missing"
-            print(
+            _p(
                 f"[信息] OpenAIClient 配置: URL={self.api_url}, "
                 f"Model={self.model}, KeySource={source}"
             )
         except Exception as exc:  # pragma: no cover - defensive
-            print(f"[错误] 加载 OpenAIClient 配置失败: {exc}")
+            _p(f"[错误] 加载 OpenAIClient 配置失败: {exc}")
 
     # ---------------------------------------------------------------- helpers
     def _is_configured(self) -> bool:

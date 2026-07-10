@@ -148,10 +148,4 @@ src 是代码主目录，建议按层次分离责任。
 - `src/frontend/app.py`
 - `config/.env.example`
 
-## 下一步建议
-- 将本文件作为团队开发的规范文档放入 `docs/`，然后可选择由我生成：
-  1. `config/.env.example` 样板文件；
-  2. `src/api/app.py` 与 `src/main.py` 的最小可运行样板。
 
----
-文档生成于项目模板阶段，若需把样例代码或 CI 配置一并生成，请确认我可以继续创建这些文件。 

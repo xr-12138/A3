@@ -2,8 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 import os
+import sys as _sys
 
 from .openai_client import OpenAIClient
+
+def _p(*a, **kw):
+    """Safe print — writes to stderr, ignores broken pipe."""
+    try: print(*a, **kw, file=_sys.stderr)
+    except: pass
 
 
 ENV_PATH = Path(__file__).resolve().parent.parent.parent / "config" / ".env"
@@ -21,7 +27,7 @@ def _load_env() -> dict:
     """
     cfg: dict = {}
     if not ENV_PATH.exists():
-        print(f"[警告] 未找到配置文件: {ENV_PATH}")
+        _p(f"[警告] 未找到配置文件: {ENV_PATH}")
         return cfg
 
     # --- 1) Try python-dotenv first. Parameter names differ across versions.
@@ -63,7 +69,7 @@ def _load_env() -> dict:
         except Exception:
             pass
 
-        print(f"[信息] 使用 python-dotenv 解析: 读取 {len(cfg)} 项")
+        _p(f"[信息] 使用 python-dotenv 解析: 读取 {len(cfg)} 项")
     except Exception:
         parsed_ok = False
 
@@ -86,14 +92,14 @@ def _load_env() -> dict:
                     cfg[key] = value
                     # Always override — the .env file is the source of truth.
                     os.environ[key] = value
-            print(f"[信息] 使用手动解析器: 读取 {len(cfg)} 项")
+            _p(f"[信息] 使用手动解析器: 读取 {len(cfg)} 项")
         except Exception as exc:
-            print(f"[错误] 无法读取 {ENV_PATH}: {exc}")
+            _p(f"[错误] 无法读取 {ENV_PATH}: {exc}")
 
     # --- 3) Echo the resolved values (safe, they are not secrets in a dev env
     # where the user needs to debug why the API isn't connecting).
     if cfg:
-        print("[信息] 解析结果:")
+        _p("[信息] 解析结果:")
         for k in ("OPENAI_API_URL", "OPENAI_MODEL", "OPENAI_API_KEY"):
             if k in cfg:
                 val = cfg[k]
@@ -103,9 +109,9 @@ def _load_env() -> dict:
                     shown = val[:4] + "****" + val[-4:]
                 else:
                     shown = val
-                print(f"       {k} = {shown}")
+                _p(f"       {k} = {shown}")
     else:
-        print(f"[警告] 未能从 {ENV_PATH} 读取到任何配置项。")
+        _p(f"[警告] 未能从 {ENV_PATH} 读取到任何配置项。")
 
     return cfg
 
@@ -122,7 +128,7 @@ def get_ai_client() -> OpenAIClient:
     client = OpenAIClient(cfg=cfg)
     has_key = bool(os.getenv('OPENAI_API_KEY') or cfg.get('OPENAI_API_KEY'))
     if not has_key:
-        print(
+        _p(
             "[警告] 未检测到 OPENAI_API_KEY。客户端仍会尝试连接配置的 API，"
             "但所有调用将返回连接错误信息。请编辑 config/.env 填入密钥。"
         )

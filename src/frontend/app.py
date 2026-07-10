@@ -1,1086 +1,941 @@
 from __future__ import annotations
 
-# 路径修复：确保从仓库根目录导入 src 包
 import sys
 from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(root_dir))
 
-import json
+import json, os, time
 from typing import Any, Optional
 
 import streamlit as st
 
 from src.api.ai_client import get_ai_client
-
 from src.agents.multi_agent_scheduler import MultiAgentScheduler
 from src.core.database import Database
 from src.core.resource_generator import ResourceGenerator
 from src.core.knowledge_base import get_knowledge_base, list_courses
 
-# 数据目录（用于保存生成文件）
 BASE_DIR = root_dir
 DATA_DIR = BASE_DIR / "data"
 GENERATED_DIR = DATA_DIR / "generated"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+ENV_PATH = root_dir / "config" / ".env"
 
+# ── env ──
 
-def sidebar_nav() -> str:
+def _read_env() -> dict:
+    c = {}
+    if not ENV_PATH.exists(): return c
+    try:
+        with open(ENV_PATH,'r',encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#') or '=' not in line: continue
+                k,_,v = line.partition('=')
+                k,v = k.strip(), v.strip().strip('"').strip("'")
+                if k: c[k]=v
+    except: pass
+    return c
+
+def _write_env(cfg: dict) -> None:
+    ENV_PATH.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "", "# API Key", f'OPENAI_API_KEY="{cfg.get("OPENAI_API_KEY","")}"',
+        "", "# Model", f'OPENAI_MODEL="{cfg.get("OPENAI_MODEL","")}"',
+        "", "# API URL", f'OPENAI_API_URL="{cfg.get("OPENAI_API_URL","")}"', "",
+    ]
+    with open(ENV_PATH,'w',encoding='utf-8') as f: f.write("\n".join(lines))
+
+# ── CSS ──
+
+CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+* { font-family: -apple-system,BlinkMacSystemFont,'Inter','Segoe UI','PingFang SC',sans-serif; }
+
+/* === GLOBAL === */
+.stApp { background: #ffffff; }
+
+/* === SIDEBAR (ChatGPT dark sidebar) === */
+section[data-testid="stSidebar"] {
+    background: #171717 !important;
+}
+section[data-testid="stSidebar"] * {
+    color: #ececec !important;
+}
+section[data-testid="stSidebar"] .st-emotion-cache-1cypcdb,
+section[data-testid="stSidebar"] .st-emotion-cache-6qob1r,
+section[data-testid="stSidebar"] .st-emotion-cache-1v0mbdj {
+    background: #171717 !important;
+}
+
+/* sidebar labels / headings */
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] h4 {
+    color: #9b9b9b !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 8px 4px 8px !important;
+    margin: 0 !important;
+}
+
+/* sidebar buttons — MUST override global button styles */
+section[data-testid="stSidebar"] button[kind="secondary"],
+section[data-testid="stSidebar"] .stButton button[kind="secondary"],
+section[data-testid="stSidebar"] button {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    margin: 1px 0 !important;
+    width: 100% !important;
+    color: #ececec !important;
+    transition: background 0.1s !important;
+}
+section[data-testid="stSidebar"] button[kind="secondary"]:hover,
+section[data-testid="stSidebar"] button:hover {
+    background: #2a2a2a !important;
+}
+section[data-testid="stSidebar"] button[kind="secondary"] *,
+section[data-testid="stSidebar"] button * {
+    color: #ececec !important;
+}
+/* active nav item */
+section[data-testid="stSidebar"] button[kind="primary"],
+section[data-testid="stSidebar"] .stButton button[kind="primary"] {
+    background: #2a2a2a !important;
+}
+section[data-testid="stSidebar"] button[kind="primary"] * {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* sidebar inputs */
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] textarea {
+    background: #2a2a2a !important;
+    border: 1px solid #3e3e3e !important;
+    border-radius: 6px !important;
+    color: #ececec !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+}
+section[data-testid="stSidebar"] input:focus {
+    border-color: #555 !important;
+}
+
+/* sidebar divider */
+section[data-testid="stSidebar"] hr {
+    border-color: #2e2e2e !important;
+    margin: 12px 0 !important;
+}
+
+/* hide deploy banner and decoration only — keep toolbar (contains sidebar toggle) */
+[data-testid="stDeployButton"], .stAppDeployButton,
+[data-testid="stDecoration"] {
+    display: none !important;
+}
+
+/* hide toolbar action buttons but keep the sidebar toggle */
+[data-testid="stToolbarActions"] {
+    display: none !important;
+}
+
+/* sidebar collapse/expand arrow & collapsed-state toggle — always visible */
+section[data-testid="stSidebar"] button[kind="headerNoPadding"],
+button[data-testid="baseButton-headerNoPadding"],
+[data-testid="collapsedControl"] {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #9b9b9b !important;
+}
+
+/* === MAIN CONTENT === */
+.block-container {
+    max-width: 768px !important;
+    padding: 48px 24px 0 24px !important;
+}
+.main {
+    background: #ffffff !important;
+}
+
+/* Headings */
+h2 {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    margin-bottom: 4px !important;
+}
+h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+}
+p, .stCaption, [data-testid="stCaptionContainer"] {
+    color: #6b6b6b !important;
+    font-size: 14px !important;
+}
+
+/* === BUTTONS (main area) === */
+button[kind="secondary"], .stButton > button[kind="secondary"] {
+    background: #f4f4f4 !important;
+    color: #1b1b1b !important;
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 20px !important;
+}
+button[kind="secondary"]:hover {
+    background: #e8e8e8 !important;
+}
+button[kind="primary"], .stButton > button[kind="primary"] {
+    background: #1b1b1b !important;
+    color: #ffffff !important;
+    border: 1px solid #1b1b1b !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 20px !important;
+}
+button[kind="primary"]:hover {
+    background: #333333 !important;
+}
+
+/* === INPUTS (main area) === */
+input, textarea {
+    background: #f4f4f4 !important;
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 26px !important;
+    padding: 14px 20px !important;
+    font-size: 15px !important;
+    color: #1b1b1b !important;
+    box-shadow: none !important;
+}
+input:focus, textarea:focus {
+    background: #ffffff !important;
+    border-color: #d1d1d1 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    outline: none !important;
+}
+
+/* === CHAT === */
+.stChatMessage {
+    border-radius: 0 !important;
+    padding: 16px 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    background: transparent !important;
+}
+[data-testid="stChatMessage"][aria-label*="user"] {
+    background: #f7f7f8 !important;
+    padding: 20px 24px !important;
+    margin: 0 -24px !important;
+    border-bottom: 1px solid #ececf1;
+    border-top: 1px solid #ececf1;
+}
+[data-testid="stChatMessage"][aria-label*="assistant"] {
+    background: #ffffff !important;
+    padding: 20px 0 !important;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* === GREETING (ChatGPT style centered) === */
+.greeting {
+    text-align: center;
+    padding: 60px 20px 20px 20px;
+}
+.greeting h1 {
+    font-size: 28px !important;
+    font-weight: 600 !important;
+    color: #1b1b1b !important;
+    margin-bottom: 8px !important;
+}
+
+/* === CARDS === */
+.card {
+    background: #f7f7f8;
+    border: 1px solid #ececf1;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+}
+.card h3 { font-size: 16px; font-weight: 600; color: #1b1b1b; margin: 0 0 8px 0; }
+
+/* expander */
+[data-testid="stExpander"] {
+    border: 1px solid #ececf1 !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+}
+[data-testid="stExpander"] summary {
+    color: #1b1b1b !important;
+    font-size: 14px !important;
+}
+
+/* tabs */
+.stTabs [data-baseweb="tab"] { font-size: 14px; font-weight: 500; color: #6b6b6b; }
+.stTabs [data-baseweb="tab"][aria-selected="true"] { color: #1b1b1b; }
+
+/* select */
+.stSelectbox [data-baseweb="select"] > div {
+    background: #f4f4f4 !important;
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 8px !important;
+}
+
+/* metrics */
+[data-testid="stMetric"] {
+    background: #f7f7f8;
+    border-radius: 10px;
+    padding: 12px;
+}
+[data-testid="stMetric"] label { color: #6b6b6b !important; font-size: 12px !important; }
+[data-testid="stMetricValue"] { color: #1b1b1b !important; font-size: 24px !important; }
+
+/* status row */
+.status-row {
+    font-size: 12px;
+    color: #9b9b9b;
+    padding: 4px 0;
+}
+.status-dot {
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+    margin-right: 4px;
+}
+.status-on { background: #10a37f; }
+.status-off { background: #ef4444; }
+
+/* settings panel */
+.settings-panel {
+    background: #f7f7f8;
+    border: 1px solid #ececf1;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 12px 0;
+}
+.settings-panel h3 { font-size: 16px; font-weight: 600; margin: 0 0 16px 0; }
+
+/* divider */
+hr { border-color: #ececf1; margin: 16px 0; }
+
+/* spinner text color */
+.stSpinner { color: #6b6b6b !important; }
+</style>
+"""
+
+# ── session management ──
+
+def _init_sessions():
+    if "conversations" not in st.session_state:
+        st.session_state.conversations = []
+    if "active_conversation_id" not in st.session_state:
+        st.session_state.active_conversation_id = None
+
+def _gen_cid():
+    return f"conv_{int(time.time()*1000000)}"
+
+def _save_current_session():
+    history = st.session_state.get("chat_history", [])
+    if not history:
+        return
+    active_id = st.session_state.get("active_conversation_id")
+    convs = st.session_state.get("conversations", [])
+    if active_id:
+        for c in convs:
+            if c["id"] == active_id:
+                c["messages"] = list(history)
+                c["title"] = _session_title(history)
+                c["updated_at"] = time.time()
+                st.session_state.conversations = convs
+                return
+    title = _session_title(history)
+    new_conv = {
+        "id": _gen_cid(),
+        "title": title,
+        "messages": list(history),
+        "created_at": time.time(),
+        "updated_at": time.time(),
+    }
+    convs.insert(0, new_conv)
+    st.session_state.active_conversation_id = new_conv["id"]
+    st.session_state.conversations = convs
+
+def _session_title(messages):
+    for m in messages:
+        if m.get("role") == "user":
+            t = str(m.get("text", ""))[:40]
+            return t if t else "新对话"
+    return "新对话"
+
+def _load_session(conv):
+    st.session_state.chat_history = list(conv.get("messages", []))
+    st.session_state.active_conversation_id = conv["id"]
+    st.session_state.selected_page = "智能辅导"
+    st.session_state.show_settings = False
+
+def _delete_session(conv_id):
+    st.session_state.conversations = [
+        c for c in st.session_state.get("conversations", []) if c["id"] != conv_id
+    ]
+    if st.session_state.get("active_conversation_id") == conv_id:
+        st.session_state.active_conversation_id = None
+        st.session_state.chat_history = []
+
+def _time_label(ts):
+    now = time.time()
+    diff = now - ts
+    if diff < 86400:
+        return "今天"
+    elif diff < 172800:
+        return "昨天"
+    elif diff < 604800:
+        return "过去 7 天"
+    elif diff < 2592000:
+        return "过去 30 天"
+    else:
+        return "更早"
+
+# ── sidebar ──
+
+def render_sidebar() -> str:
+    _init_sessions()
+
     with st.sidebar:
-        st.markdown("""
-            <style>
-                .sidebar-title {
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #1e88e5;
-                    margin-bottom: 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                .nav-button {
-                    display: block;
-                    width: 100%;
-                    padding: 12px 16px;
-                    margin: 8px 0;
-                    text-align: left;
-                    border-radius: 10px;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 15px;
-                    transition: all 0.3s ease;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                }
-                .nav-button:hover {
-                    transform: translateX(5px);
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        st.markdown('<div class="sidebar-title">📚 个性化学习智能体</div>', unsafe_allow_html=True)
-        
-        pages = [ "画像构建", "多模态资源生成", "个性化学习路径", "智能辅导","课程知识库"]
-        icons = [ "👤", "📦", "🗺️", "💬","📚"]
-        
-        selected_page = st.session_state.get('selected_page', pages[0])
-        
-        for page, icon in zip(pages, icons):
-            if st.button(f"{icon} {page}", key=f"nav_{page}", use_container_width=True):
-                st.session_state.selected_page = page
+        if st.button("+ 新建对话", key="new_chat_btn", use_container_width=True):
+            _save_current_session()
+            st.session_state.chat_history = []
+            st.session_state.active_conversation_id = None
+            st.session_state.selected_page = "智能辅导"
+            st.session_state.show_settings = False
+            st.rerun()
+
+        st.markdown('<h4 style="margin-top:20px;">历史</h4>', unsafe_allow_html=True)
+
+        convs = st.session_state.get("conversations", [])
+        active_id = st.session_state.get("active_conversation_id")
+
+        # Group conversations by time period (ChatGPT style)
+        groups: dict = {}
+        for c in convs:
+            label = _time_label(c.get("created_at", 0))
+            groups.setdefault(label, []).append(c)
+
+        for label in ["今天", "昨天", "过去 7 天", "过去 30 天", "更早"]:
+            if label not in groups:
+                continue
+            st.markdown(
+                f'<div style="font-size:11px;color:#9b9b9b;font-weight:600;text-transform:uppercase;'
+                f'padding:8px 8px 4px 8px;letter-spacing:0.5px;">{label}</div>',
+                unsafe_allow_html=True,
+            )
+            for c in groups[label]:
+                is_active = (c["id"] == active_id)
+                title = c.get("title", "新对话")[:30]
+
+                if st.button(
+                    title,
+                    key=f"conv_{c['id']}",
+                    use_container_width=True,
+                    type="primary" if is_active else "secondary",
+                ):
+                    _save_current_session()
+                    _load_session(c)
+                    st.rerun()
+
+        st.markdown("<hr>", unsafe_allow_html=True)
+
+        nav_items = [
+            ("nav_profile", "画像构建", "画像构建"),
+            ("nav_resource", "资源生成", "多模态资源生成"),
+            ("nav_path", "学习路径", "个性化学习路径"),
+            ("nav_tutor", "智能辅导", "智能辅导"),
+            ("nav_kb", "课程知识库", "课程知识库"),
+        ]
+
+        for key, label, full in nav_items:
+            is_active = (st.session_state.get("selected_page", nav_items[0][2]) == full)
+            if st.button(label, key=key, use_container_width=True,
+                         type="primary" if is_active else "secondary"):
+                st.session_state.selected_page = full
+                st.session_state.show_settings = False
                 st.rerun()
-        
-        return st.session_state.get('selected_page', pages[0])
 
+        selected = st.session_state.get("selected_page", nav_items[0][2])
 
-def get_current_course_id():
-    """从 session_state 读取当前选中的课程 ID，供所有页面使用"""
-    return st.session_state.get("current_course_id") or None
+        st.markdown("<hr>", unsafe_allow_html=True)
+        st.markdown('<h4>设置</h4>', unsafe_allow_html=True)
 
-
-def get_kb_for_current_course():
-    """按当前侧边栏选中的课程加载知识库实例"""
-    return get_knowledge_base(get_current_course_id())
-
-
-def _is_error_payload(value: object) -> bool:
-    """Return True when the agent returned the structured error dict from
-    :mod:`src.api.openai_client` instead of real content.
-    """
-    return isinstance(value, dict) and value.get("_ai_error") is True
-
-
-def get_runtime_objects():
-    """从 session_state 获取或创建 ai、scheduler、db 等运行时对象。
-
-    The AI client returned by :func:`get_ai_client` is always the real one
-    backed by ``OPENAI_API_KEY`` / ``OPENAI_API_URL`` from ``config/.env``.
-    If those are missing or the remote is unreachable, API calls produce
-    ``[AI错误: ...]`` text or ``{"_ai_error": True, ...}`` dict payloads
-    instead of silently emitting sample content.
-    """
-    if "ai" not in st.session_state:
-        st.session_state.ai = get_ai_client()
-        client = st.session_state.ai
-        configured = bool(getattr(client, "api_key", "")) and bool(
-            getattr(client, "api_url", "")
-        )
-        if configured:
-            st.info(
-                f"已初始化 AI 客户端: URL={getattr(client, 'api_url', '')}, "
-                f"Model={getattr(client, 'model', '')}"
+        cfg = _read_env()
+        if cfg.get("OPENAI_API_KEY") and cfg.get("OPENAI_API_URL"):
+            st.markdown(
+                f'<div style="font-size:12px;color:#10a37f;padding:4px 8px;">'
+                f'API 已连接 · {cfg.get("OPENAI_MODEL","")}</div>',
+                unsafe_allow_html=True,
             )
         else:
-            st.warning(
-                "未检测到 OPENAI_API_KEY/OPENAI_API_URL。所有 AI 调用将返回连接错误，"
-                "请编辑 config/.env 后重试。"
+            st.markdown(
+                '<div style="font-size:12px;color:#ef4444;padding:4px 8px;">'
+                'API 未配置</div>',
+                unsafe_allow_html=True,
             )
 
-    if "scheduler" not in st.session_state:
-        st.session_state.scheduler = MultiAgentScheduler(st.session_state.ai)
+        # Settings toggle at bottom of sidebar
+        show_s = st.session_state.get("show_settings", False)
+        if st.button("关闭设置" if show_s else "API 设置", key="sidebar_settings_btn",
+                     use_container_width=True):
+            st.session_state.show_settings = not show_s
+            st.rerun()
+
+        return selected
+
+# ── settings ──
+
+def render_settings():
+    st.session_state.show_settings = True
+    cfg = _read_env()
+    st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
+    st.markdown("### 设置")
+    col1, col2 = st.columns(2)
+    with col1:
+        url = st.text_input("API 地址", value=cfg.get("OPENAI_API_URL",""),
+                           placeholder="https://api.openai.com/v1/chat/completions", key="u")
+    with col2:
+        model = st.text_input("模型", value=cfg.get("OPENAI_MODEL",""),
+                             placeholder="gpt-3.5-turbo", key="m")
+    key = st.text_input("API Key", value=cfg.get("OPENAI_API_KEY",""),
+                        type="password", placeholder="sk-...", key="k")
+    c1, c2, _ = st.columns([1,1,3])
+    with c1:
+        if st.button("保存", use_container_width=True, key="save", type="primary"):
+            nc = {"OPENAI_API_URL":url,"OPENAI_API_KEY":key,"OPENAI_MODEL":model}
+            _write_env(nc)
+            for kk,vv in nc.items(): os.environ[kk]=vv
+            st.session_state.pop("ai",None); st.session_state.pop("scheduler",None)
+            st.session_state.show_settings = False
+            st.rerun()
+    with c2:
+        if st.button("取消", use_container_width=True, key="cancel"):
+            st.session_state.show_settings = False
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ── shared ──
+
+def get_cid(): return st.session_state.get("current_course_id")
+def get_kb(): return get_knowledge_base(get_cid())
+def _err(v): return isinstance(v,dict) and v.get("_ai_error")
+
+def get_runtime():
+    if "ai" not in st.session_state: st.session_state.ai = get_ai_client()
+    if "scheduler" not in st.session_state: st.session_state.scheduler = MultiAgentScheduler(st.session_state.ai)
     if "db" not in st.session_state:
-        db = Database()
-        db.create_tables()
-        # 兼容：确保存在 save_profile 方法（前端按要求调用 db.save_profile）
-        if not hasattr(db, "save_profile"):
-            def _save_profile(user_id: str, features: list, extra: dict = None):
-                return db.add_student_profile(user_id=user_id, features=features, extra=extra)
-            db.save_profile = _save_profile
+        db = Database(); db.create_tables()
+        if not hasattr(db,"save_profile"):
+            db.save_profile = lambda u,fs,e=None: db.add_student_profile(u,fs,e)
         st.session_state.db = db
     return st.session_state.ai, st.session_state.scheduler, st.session_state.db
 
+def top_bar(title: str):
+    """ChatGPT-style top bar."""
+    show = st.session_state.get("show_settings",False)
+    c1, c2 = st.columns([8,1])
+    with c1:
+        st.markdown(f'<div class="status-row">LearnKit / {title}</div>', unsafe_allow_html=True)
+    with c2:
+        if st.button("设置" if not show else "关闭", key="ts", use_container_width=False):
+            st.session_state.show_settings = not show; st.rerun()
 
+# ── pages ──
 
-def render_profile_page():
-    ai, scheduler, db = get_runtime_objects()
-    
-    st.markdown("""
-        <style>
-            .profile-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 20px;
-                border-radius: 15px;
-                color: white;
-                margin-bottom: 20px;
-            }
-            .card {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            .btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                padding: 10px 24px;
-                border-radius: 8px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('<div class="profile-header"><h1>👤 学习画像构建</h1><p>通过对话输入学生信息，系统将调用多智能体生成个性化学习画像并保存到数据库。</p></div>', unsafe_allow_html=True)
+def render_profile():
+    ai, scheduler, db = get_runtime()
 
-    if "conv" not in st.session_state:
-        st.session_state.conv = []
-    if "profile" not in st.session_state:
-        st.session_state.profile = None
+    st.markdown("## 学习画像构建")
+    st.caption("描述学生背景，AI 自动生成结构化学习画像。")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    with st.container():
-        user_input = st.text_input(
-            "", 
-            placeholder="与学生对话（例如：我是一名计算机专业大二学生，想学机器学习）", 
-            key="profile_input",
-            label_visibility="collapsed"
-        )
-        col1, col2 = st.columns([4, 1])
-        with col2:
-            send_btn = st.button("发送", key="send_profile", use_container_width=True)
-        # 仅在点击发送且有输入时发送请求，避免初次渲染就显示错误信息
-        if send_btn:
-            if not user_input:
-                st.warning("请输入学生信息后再发送。")
+    if "prof_conv" not in st.session_state: st.session_state.prof_conv = []
+    if "profile" not in st.session_state: st.session_state.profile = None
+
+    user_input = st.text_area(
+        "学生信息",
+        placeholder="描述学生背景，例如：计算机专业大二学生，已修 Python 和数据结构，想系统学习机器学习...",
+        key="pi", height=100, label_visibility="collapsed",
+    )
+
+    c1, c2 = st.columns([1,6])
+    with c1:
+        if st.button("生成", key="pg", use_container_width=True, type="primary"):
+            if not user_input.strip():
+                st.warning("请输入信息")
             else:
-                st.session_state.conv.append({"role": "user", "text": user_input})
-                with st.spinner("正在生成画像..."):
+                st.session_state.prof_conv.append({"role":"user","text":user_input})
+                with st.spinner("分析中..."):
                     try:
-                        # 通过统一接口调用多智能体生成画像（动态，不使用硬编码）
-                        profile = scheduler.execute_task("profile", user_input)
+                        p = scheduler.execute_task("profile", user_input)
                     except Exception as e:
-                        profile = {"error": f"画像生成失败: {str(e)}"}
-                    st.session_state.profile = profile
-
-            # 画像生成后保存到数据库：优先调用 db.save_profile
-            try:
-                user_id = f"user_{abs(hash(user_input)) % 100000}"
-                features: Optional[list] = []
-                # 尝试从画像字段中提取特征
-                if isinstance(profile, dict):
-                    # 为了演示，我们将知识水平转换为数值特征
-                    if profile.get("knowledge_level") == "基础薄弱":
-                        features.append(0)
-                    elif profile.get("knowledge_level") == "中等":
-                        features.append(1)
-                    elif profile.get("knowledge_level") == "基础扎实":
-                        features.append(2)
-                    # 添加其他特征
-                    features.append(len(profile.get("weak_points", [])))
-                    features.append(len(profile.get("learning_suggestions", [])))
+                        p = {"error":str(e)}
+                    st.session_state.profile = p
                 try:
-                    db.save_profile(user_id=user_id, features=features, extra=profile)
-                except Exception:
-                    if hasattr(db, "add_student_profile"):
-                        db.add_student_profile(user_id=user_id, features=features, extra=profile)
-            except Exception:
-                pass
+                    uid = f"u{abs(hash(user_input))%100000}"
+                    fs: list = []
+                    if isinstance(p,dict):
+                        kl = str(p.get("knowledge_level",""))
+                        fs.append(0 if "薄弱" in kl else 1 if "中等" in kl else 2)
+                        fs.append(len(p.get("weak_points",[])))
+                        fs.append(len(p.get("learning_suggestions",[])))
+                    db.save_profile(uid,fs,p)
+                except: pass
 
     if st.session_state.profile:
-        profile = st.session_state.profile
-        def render_profile_card(profile_obj):
-            st.markdown('<div class="card"><h3>📊 学生画像（结构化展示）</h3>', unsafe_allow_html=True)
-            if _is_error_payload(profile_obj):
-                st.error(
-                    f"画像生成失败 [{profile_obj.get('error_kind', 'unknown')}]: "
-                    f"{profile_obj.get('detail', profile_obj)}"
-                )
-                st.markdown('</div>', unsafe_allow_html=True)
-                return
-            try:
-                if isinstance(profile_obj, dict):
-                    cols = st.columns(2)
-                    idx = 0
-                    for k, v in profile_obj.items():
-                        with cols[idx % 2]:
-                            st.markdown(f"**{k}:**")
-                            if isinstance(v, (dict, list)):
-                                with st.expander("查看详情"):
-                                    st.json(v)
-                            else:
-                                st.markdown(f"{v}")
-                        idx += 1
-                else:
-                    st.json(profile_obj)
-            except Exception:
-                st.markdown(str(profile_obj))
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        render_profile_card(profile)
+        p = st.session_state.profile
+        if _err(p):
+            st.error(f"失败: {p.get('detail',p)}")
+        elif isinstance(p, dict):
+            st.markdown('<div class="card"><h3>分析结果</h3>', unsafe_allow_html=True)
+            for title, keys in [
+                ("概况",["major","grade","knowledge_level","target_direction"]),
+                ("能力",["programming_ability","math_foundation","english_level","learning_style"]),
+                ("建议",["weak_points","strength_points","learning_suggestions","recommended_courses"]),
+            ]:
+                present = [k for k in keys if k in p]
+                if present:
+                    st.markdown(f"**{title}**")
+                    cols = st.columns(min(len(present),3))
+                    for i,k in enumerate(present):
+                        v = p[k]
+                        with cols[i%3]:
+                            vs = ", ".join(map(str,v[:5])) if isinstance(v,list) else str(v)
+                            st.caption(f"{k}: {vs[:80]}")
+                    st.markdown("")
+            st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.json(p)
 
 
+def render_resource():
+    ai, scheduler, db = get_runtime()
 
-def render_resource_page():
-    ai, scheduler, db = get_runtime_objects()
-    
-    st.markdown("""
-        <style>
-            .resource-header {
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                padding: 20px;
-                border-radius: 15px;
-                color: white;
-                margin-bottom: 20px;
-            }
-            .input-group {
-                margin-bottom: 15px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('<div class="resource-header"><h1>📦 多模态资源生成</h1><p>系统已载入「数据结构」完整课程知识库 · 多智能体结合课程知识生成专属学习资源</p></div>', unsafe_allow_html=True)
+    st.markdown("## 资源生成")
+    st.caption("基于知识库，生成文档、导图、题库、代码等。")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    with st.container():
-        kb = get_kb_for_current_course()
-        kb_course = kb.course_name
-        manifest = kb.manifest
-        chapters = manifest.get("chapters", [])
+    kb = get_kb()
+    chapters = kb.manifest.get("chapters",[])
+    all_kp = [kp for ch in chapters for kp in ch.get("knowledge_points",[])]
 
-        # 收集所有知识点建议
-        all_kp_suggestions = []
-        for ch in chapters:
-            for kp in ch.get("knowledge_points", []):
-                all_kp_suggestions.append(kp)
+    c1, c2, c3 = st.columns([2,2,1])
+    with c1:
+        course = st.text_input("课程", value=kb.course_name, key="rc", label_visibility="collapsed", placeholder="课程名称")
+    with c2:
+        kp = st.text_input("知识点", placeholder="例如：二叉树遍历", key="rk", label_visibility="collapsed")
+    with c3:
+        rtype = st.selectbox("类型", ["document","mindmap","question_bank","code","reading_material"],
+                            format_func=lambda x:{"document":"文档","mindmap":"导图","question_bank":"题库",
+                                                  "code":"代码","reading_material":"阅读"}[x],
+                            key="rt", label_visibility="collapsed")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            course = st.text_input("课程名称", placeholder="例如：人工智能导论", value=kb_course)
-            st.markdown(f'<div style="font-size:12px;color:#888;margin-top:-8px;">已自动填充为课程知识库中的课程名</div>', unsafe_allow_html=True)
-        with col2:
-            knowledge_point = st.text_input("知识点", placeholder="例如：二叉树遍历、快速排序", value="")
-            if all_kp_suggestions:
-                kp_preview = "、".join(all_kp_suggestions[:8])
-                st.markdown(f'<div style="font-size:12px;color:#888;margin-top:-8px;">💡 建议关键词：{kp_preview}...</div>', unsafe_allow_html=True)
-        
-        rtype = st.selectbox("资源类型", ["document", "mindmap", "question_bank", "code", "reading_material"], index=0,
-                             format_func=lambda x: {"document": "教学文档", "mindmap": "思维导图", "question_bank": "题库", "code": "代码示例", "reading_material": "拓展阅读"}[x])
-
-        if st.button("🚀 生成资源", use_container_width=True):
-            if not course or not knowledge_point:
-                st.warning("请填写课程和知识点以生成资源。")
+    if st.button("生成资源", use_container_width=True, key="rg"):
+        if not course or not kp:
+            st.warning("请填写课程和知识点")
+        else:
+            with st.spinner("生成中..."):
+                try:
+                    res = scheduler.execute_task("resource",{"course":course,"kp":kp,"rtype":rtype})
+                except Exception as e:
+                    res = {"error":str(e)}
+            if not res or _err(res):
+                st.error(f"失败: {res.get('detail',res) if isinstance(res,dict) else res}")
             else:
-                with st.spinner("正在生成资源..."):
+                ct = res.get(rtype) if isinstance(res,dict) else None
+                st.markdown('<div class="card"><h3>结果</h3>', unsafe_allow_html=True)
+                if ct is None:
+                    st.json(res)
+                elif isinstance(ct,str) and "[AI错误]" in ct:
+                    st.error(ct)
+                elif rtype == "mindmap":
                     try:
-                        payload = {"course": course, "kp": knowledge_point, "rtype": rtype}
-                        # 动态调用多智能体生成资源（禁止硬编码）
-                        resources = scheduler.execute_task("resource", payload)
-                    except Exception as e:
-                        resources = {"error": f"资源生成失败: {str(e)}"}
-
-                if not resources:
-                    st.error("资源生成失败或返回为空。请检查 config/.env 中的 OPENAI_API_KEY / OPENAI_API_URL 并重试。")
-                elif _is_error_payload(resources):
-                    st.error(
-                        f"资源生成失败 [{resources.get('error_kind', 'unknown')}]: "
-                        f"{resources.get('detail', resources)}"
-                    )
-                else:
-                    st.markdown('<div class="card"><h3>🎯 生成结果</h3>', unsafe_allow_html=True)
-                    content = resources.get(rtype) if isinstance(resources, dict) else None
-                    if _is_error_payload(content):
-                        st.error(
-                            f"{rtype} 生成失败 [{content.get('error_kind', 'unknown')}]: "
-                            f"{content.get('detail', content)}"
-                        )
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        try:
-                            user_id = f"user_{abs(hash(course + knowledge_point)) % 100000}"
-                            if isinstance(resources, dict):
-                                for k, v in resources.items():
-                                    rid = f"{knowledge_point}_{k}"
-                                    content_text = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
-                                    if hasattr(db, "add_resource"):
-                                        db.add_resource(user_id=user_id, resource_id=rid, resource_type=k, content=content_text, metadata={"course": course, "kp": knowledge_point})
-                        except Exception:
-                            pass
-                        return
-                    if content is None:
-                        st.info("未找到指定类型，展示完整生成结果：")
-                        st.json(resources)
-                    elif isinstance(content, str) and content.startswith("[AI错误]"):
-                        # Plain-text error from generate_text() — surface it clearly
-                        st.error(f"{rtype} 生成失败: {content}")
-                    else:
-                        # 专门处理 mindmap：如果是结构化 dict，则渲染为图片并预览
-                        if rtype == "mindmap":
-                            try:
-                                rg = ResourceGenerator(work_dir=str(GENERATED_DIR))
-                                # 允许用户自定义文件名（默认以知识点命名）
-                                default_name = f"{knowledge_point}_mindmap.png"
-                                fn_input = st.text_input("导出文件名（含 .png）：", value=default_name)
-
-                                # 解析并渲染结构化内容，支持 JSON 字符串或 dict
-                                parsed = None
-                                if isinstance(content, str):
-                                    import json as _json
-                                    try:
-                                        parsed = _json.loads(content)
-                                    except Exception:
-                                        parsed = None
-                                elif isinstance(content, dict):
-                                    parsed = content
-
-                                if parsed and isinstance(parsed, dict):
-                                    # 确保文件名以 .png 结尾
-                                    out_name = fn_input if fn_input.endswith('.png') else fn_input + '.png'
-                                    rendered = rg.render_mindmap(parsed, output_name=out_name, format='png', size='12,8', dpi=200)
-                                    # 展示更大的图片（宽度翻倍）
-                                    try:
-                                        st.image(rendered, width=1200)
-                                    except Exception:
-                                        st.image(rendered)
-
-                                    # 添加下载按钮：读取文件二进制并提供下载
-                                    try:
-                                        with open(rendered, 'rb') as _f:
-                                            data = _f.read()
-                                        st.download_button("⬇️ 下载 PNG", data=data, file_name=os.path.basename(out_name), mime="image/png")
-                                    except Exception as e:
-                                        st.warning(f"无法提供下载：{e}")
-                                else:
-                                    # 非结构化内容回退为文本/JSON 展示
-                                    if isinstance(content, (dict, list)):
-                                        st.json(content)
-                                    else:
-                                        st.markdown(str(content))
-                            except Exception as e:
-                                st.error(f"思维导图渲染失败: {e}")
-                                if isinstance(content, (dict, list)):
-                                    st.json(content)
-                                else:
-                                    st.markdown(str(content))
+                        rg = ResourceGenerator(work_dir=str(GENERATED_DIR))
+                        fn = st.text_input("文件名", value=f"{kp}_mindmap.png", key="mf")
+                        parsed = None
+                        if isinstance(ct,str):
+                            try: parsed = json.loads(ct)
+                            except: pass
+                        elif isinstance(ct,dict): parsed = ct
+                        if parsed and isinstance(parsed,dict):
+                            out = fn if fn.endswith('.png') else fn+'.png'
+                            rendered = rg.render_mindmap(parsed, output_name=out, format='png', size='12,8', dpi=200)
+                            st.image(rendered, width=700)
+                            with open(rendered,'rb') as f:
+                                st.download_button("下载", data=f.read(), file_name=os.path.basename(out), mime="image/png")
                         else:
-                            # 专门处理题库：支持结构化列表，每题包含 q、a、explanation；答案默认隐藏，点击查看
-                            if rtype == "question_bank":
-                                parsed = None
-                                if isinstance(content, str):
-                                    try:
-                                        parsed = json.loads(content)
-                                    except Exception:
-                                        parsed = None
-                                elif isinstance(content, list):
-                                    parsed = content
-
-                                if isinstance(parsed, list):
-                                    for idx, item in enumerate(parsed):
-                                        try:
-                                            qtext = item.get("q") if isinstance(item, dict) else str(item)
-                                        except Exception:
-                                            qtext = str(item)
-                                        st.markdown(f"**{idx+1}. {qtext}**")
-                                        with st.expander("查看答案与解析"):
-                                            if isinstance(item, dict):
-                                                ans = item.get("a") or item.get("answer") or "（未提供答案）"
-                                                expl = item.get("explanation") or item.get("解析") or item.get("explain") or "（未提供详细解析）"
-                                                # 使用 Markdown 渲染答案与详解，确保可读性
-                                                st.markdown(f"**答案：**\n\n{ans}")
-                                                st.markdown(f"**详解：**\n\n{expl}")
-                                            else:
-                                                st.markdown(str(item))
-                                else:
-                                    # 非结构化回退为文本展示，保持答案隐藏提示
-                                    st.markdown("无法解析为结构化题库，显示原始内容：")
-                                    st.markdown(str(content))
-                            elif rtype == "reading_material":
-                                parsed = None
-                                if isinstance(content, str):
-                                    try:
-                                        parsed = json.loads(content)
-                                    except Exception:
-                                        parsed = None
-                                elif isinstance(content, list):
-                                    parsed = content
-
-                                if isinstance(parsed, list):
-                                    # 按 order 排序，缺失 order 的放后面
-                                    try:
-                                        parsed_sorted = sorted(parsed, key=lambda x: (x.get("order") if isinstance(x, dict) and x.get("order") is not None else 9999))
-                                    except Exception:
-                                        parsed_sorted = parsed
-
-                                    for item in parsed_sorted:
-                                        if isinstance(item, dict):
-                                            title = item.get("title", "未命名资源")
-                                            rtype_txt = item.get("type", "")
-                                            summary = item.get("summary", "")
-                                            difficulty = item.get("difficulty", "")
-                                            link = item.get("link", "")
-                                            order = item.get("order", None)
-                                            recommended_for = item.get("recommended_for", "")
-                                            why = item.get("why_recommend", "")
-                                            est = item.get("estimated_time", "")
-
-                                            # 卡片式渲染，突出标题与关键字段
-                                            header = f"**{order}. {title}**" if order else f"**{title}**"
-                                            st.markdown(header)
-                                            meta = []
-                                            if rtype_txt:
-                                                meta.append(f"类型：{rtype_txt}")
-                                            if difficulty:
-                                                meta.append(f"难度：{difficulty}")
-                                            if est:
-                                                meta.append(f"预计耗时：{est}")
-                                            if meta:
-                                                st.markdown("- " + "  |  ".join(meta))
-
-                                            if recommended_for:
-                                                st.markdown(f"- **适合人群：** {recommended_for}")
-                                            if why:
-                                                st.markdown(f"- **推荐理由：** {why}")
-                                            if summary:
-                                                st.markdown(f"- **摘要：** {summary}")
-                                            if link:
-                                                st.markdown(f"- **链接/DOI：** {link}")
-                                            st.markdown('---')
-                                        else:
-                                            st.markdown(str(item))
-
-                                    # 提供下载按钮导出 JSON
-                                    try:
-                                        data = json.dumps(parsed_sorted, ensure_ascii=False, indent=2)
-                                        st.download_button("⬇️ 下载拓展阅读（JSON）", data=data, file_name=f"{knowledge_point}_reading_material.json", mime="application/json")
-                                    except Exception:
-                                        pass
-                                else:
-                                    st.markdown("无法解析为结构化拓展阅读，显示原始内容：")
-                                    st.markdown(str(content))
-                            else:
-                                if isinstance(content, (dict, list)):
-                                    st.json(content)
-                                else:
-                                    st.markdown(content)
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    # 持久化生成的资源到 DB
-                    try:
-                        user_id = f"user_{abs(hash(course + knowledge_point)) % 100000}"
-                        if isinstance(resources, dict):
-                            for k, v in resources.items():
-                                rid = f"{knowledge_point}_{k}"
-                                content_text = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
-                                if hasattr(db, "add_resource"):
-                                    db.add_resource(user_id=user_id, resource_id=rid, resource_type=k, content=content_text, metadata={"course": course, "kp": knowledge_point})
-                    except Exception:
-                        pass
+                            st.markdown(str(ct))
+                    except Exception as e:
+                        st.error(f"渲染失败: {e}")
+                elif rtype == "question_bank":
+                    parsed = None
+                    if isinstance(ct,str):
+                        try: parsed = json.loads(ct)
+                        except: pass
+                    elif isinstance(ct,list): parsed = ct
+                    if isinstance(parsed,list):
+                        for i,item in enumerate(parsed):
+                            qt = item.get("q") if isinstance(item,dict) else str(item)
+                            st.markdown(f"**{i+1}. {qt}**")
+                            with st.expander("答案"):
+                                if isinstance(item,dict):
+                                    st.markdown(f"**答案**\n\n{item.get('a') or item.get('answer') or '-'}")
+                                    st.markdown(f"**解析**\n\n{item.get('explanation') or '-'}")
+                    else:
+                        st.markdown(str(ct))
+                elif rtype == "reading_material":
+                    parsed = None
+                    if isinstance(ct,str):
+                        try: parsed = json.loads(ct)
+                        except: pass
+                    elif isinstance(ct,list): parsed = ct
+                    if isinstance(parsed,list):
+                        try: parsed = sorted(parsed, key=lambda x: x.get("order",9999) if isinstance(x,dict) else 9999)
+                        except: pass
+                        for item in parsed:
+                            if isinstance(item,dict):
+                                st.markdown(f"**{item.get('title','')}**")
+                                st.caption(f"{item.get('type','')} | {item.get('difficulty','')}")
+                                if item.get("summary"): st.caption(item["summary"])
+                                st.markdown("---")
+                        st.download_button("导出 JSON", data=json.dumps(parsed,ensure_ascii=False,indent=2),
+                                         file_name=f"{kp}_reading.json", mime="application/json")
+                    else:
+                        st.markdown(str(ct))
+                else:
+                    if isinstance(ct,(dict,list)): st.json(ct)
+                    else: st.markdown(ct)
+                st.markdown("</div>", unsafe_allow_html=True)
 
 
+def render_path():
+    ai, scheduler, db = get_runtime()
 
-def render_path_page():
-    ai, scheduler, db = get_runtime_objects()
-    
-    st.markdown("""
-        <style>
-            .path-header {
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                padding: 20px;
-                border-radius: 15px;
-                color: white;
-                margin-bottom: 20px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('<div class="path-header"><h1>🗺️ 个性化学习路径</h1><p>基于学生画像调用 PathAgent 生成个性化学习路径。</p></div>', unsafe_allow_html=True)
+    st.markdown("## 学习路径")
+    st.caption("基于学生画像，规划个性化路径。")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
     profile = st.session_state.get("profile")
     if not profile:
-        st.markdown('<div class="card"><p style="color: #ff9800; font-weight: 500;">⚠️ 请先在左侧的“画像构建”页面生成或输入学生画像。</p></div>', unsafe_allow_html=True)
+        st.info("请先在「画像构建」中生成画像。")
         return
 
-    if st.button("🚀 生成学习路径", use_container_width=True):
-        with st.spinner("正在生成学习路径..."):
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("### 当前画像")
+    if isinstance(profile,dict):
+        c1,c2,c3 = st.columns(3)
+        c1.metric("知识水平", profile.get("knowledge_level","-"))
+        c2.metric("编程能力", profile.get("programming_ability","-"))
+        c3.metric("学习风格", profile.get("learning_style","-"))
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.button("生成学习路径", use_container_width=True, key="pl", type="primary"):
+        with st.spinner("分析中..."):
             try:
                 plan = scheduler.execute_task("path", profile)
-                if not plan:
-                    st.error("学习路径生成失败或返回为空。请检查 config/.env 中的 API 配置。")
-                elif _is_error_payload(plan):
-                    st.error(
-                        f"学习路径生成失败 [{plan.get('error_kind', 'unknown')}]: "
-                        f"{plan.get('detail', plan)}"
-                    )
+                if not plan or _err(plan):
+                    st.error(f"失败: {plan.get('detail',plan) if isinstance(plan,dict) else plan}")
                 else:
-                    st.markdown('<div class="card"><h3>📝 生成的学习路径</h3>', unsafe_allow_html=True)
-                    # 动态生成学习路径文本
-                    if isinstance(plan, dict):
-                        plan_text = plan.get("plan_text", str(plan))
-                    else:
-                        plan_text = str(plan)
-                    st.markdown(plan_text)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="card"><h3>推荐路径</h3>', unsafe_allow_html=True)
+                    pt = plan.get("plan_text",str(plan)) if isinstance(plan,dict) else str(plan)
+                    st.markdown(pt)
+                    st.markdown("</div>", unsafe_allow_html=True)
                     try:
-                        user_id = f"user_{abs(hash(json.dumps(profile, ensure_ascii=False))) % 100000}"
-                        if hasattr(db, "add_learning_step"):
-                            db.add_learning_step(user_id=user_id, step=1, progress=0.0, details=plan_text)
-                    except Exception:
-                        pass
+                        uid = f"u{abs(hash(json.dumps(profile,ensure_ascii=False)))%100000}"
+                        if hasattr(db,"add_learning_step"): db.add_learning_step(uid,1,0.0,pt)
+                    except: pass
             except Exception as e:
-                st.error(f"生成学习路径失败: {str(e)}")
+                st.error(f"失败: {e}")
 
 
-
-def render_tutor_page():
-    ai, scheduler, db = get_runtime_objects()
-    
-    st.markdown("""
-        <style>
-            .tutor-header {
-                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-                padding: 20px;
-                border-radius: 15px;
-                color: white;
-                margin-bottom: 20px;
-            }
-            .chat-container {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                padding: 12px 16px;
-                /* 缩小初始占位，避免无用的大白块 */
-                min-height: 40px;
-                margin-top: 8px;
-                max-height: calc(100vh - 220px);
-                overflow-y: auto;
-            }
-            .user-message {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 15px 15px 5px 15px;
-                margin-bottom: 15px;
-                max-width: 70%;
-                margin-left: auto;
-                box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-                font-size: 15px;
-                line-height: 1.6;
-            }
-            .ai-message {
-                background: #f8f9fa;
-                color: #333;
-                padding: 15px 20px;
-                border-radius: 15px 15px 15px 5px;
-                margin-bottom: 15px;
-                max-width: 70%;
-                border: 1px solid #e9ecef;
-                font-size: 15px;
-                line-height: 1.6;
-                white-space: normal;
-            }
-            .ai-message .ai-content {
-                margin-top: 8px;
-                color: #333;
-                font-size: 15px;
-                line-height: 1.6;
-                word-break: break-word;
-                overflow-wrap: anywhere;
-            }
-            /* 统一AI回复中的所有元素字体大小，避免标题过大 */
-            .ai-message .ai-content h1,
-            .ai-message .ai-content h2,
-            .ai-message .ai-content h3,
-            .ai-message .ai-content h4,
-            .ai-message .ai-content h5,
-            .ai-message .ai-content h6 {
-                font-size: 15px !important;
-                font-weight: 600;
-                margin: 8px 0;
-                color: #333;
-            }
-            .ai-message .ai-content p {
-                font-size: 15px;
-                margin: 6px 0;
-            }
-            .ai-message .ai-content ul,
-            .ai-message .ai-content ol {
-                font-size: 15px;
-                padding-left: 20px;
-                margin: 6px 0;
-            }
-            .ai-message .ai-content li {
-                font-size: 15px;
-                margin: 4px 0;
-            }
-            .ai-message .ai-content pre {
-                background: #2d2d2d;
-                color: #f8f8f2;
-                padding: 10px;
-                border-radius: 8px;
-                overflow: auto;
-                font-size: 13px;
-            }
-            .ai-message .ai-content code {
-                background: #f5f5f5;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-size: 13px;
-            }
-            .ai-message .ai-content blockquote {
-                border-left: 4px solid #eee;
-                padding-left: 12px;
-                color: #666;
-                margin: 8px 0;
-                font-size: 15px;
-            }
-            .ai-message, .user-message { display: inline-block; }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('<div class="tutor-header"><h1>💬 智能辅导</h1><p>输入问题，使用 TutoringAgent 进行实时问答。</p></div>', unsafe_allow_html=True)
+def render_tutor():
+    ai, scheduler, db = get_runtime()
+    _init_sessions()
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # 使用表单实现按回车键发送
-    with st.form(key="tutor_form"):
-        col1, col2 = st.columns([4, 1])
-        with col1:
-            q = st.text_input("", placeholder="输入你的问题...", key="tutor_input", label_visibility="collapsed")
-        with col2:
-            submit_button = st.form_submit_button(label="发送", use_container_width=True)
+    # Greeting when no messages
+    if not st.session_state.chat_history:
+        st.markdown(
+            '<div class="greeting">'
+            '<h1>有什么可以帮助你的？</h1>'
+            '<p style="color:#6b6b6b;font-size:15px;">向 AI 辅导助手提问，获取学习建议与知识解答。</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-    if submit_button and q:
-        st.session_state.chat_history.append({"role": "user", "text": q})
-        with st.spinner("🤖 AI 正在生成回复..."):
-            try:
-                resp = scheduler.execute_task("tutoring", q)
-                # Structured error payload from the real API client → red banner
-                if isinstance(resp, dict) and resp.get("_ai_error") is True:
-                    st.error(
-                        f"AI 调用失败 [{resp.get('error_kind', 'unknown')}]: "
-                        f"{resp.get('detail', resp)}"
-                    )
-                    st.rerun()
-                # 如果是 dict 且包含 answer 字段，提取并作为 Markdown 文本渲染；否则按字符串处理
-                if isinstance(resp, dict) and "answer" in resp:
-                    text = resp.get("answer")
-                else:
-                    text = resp if isinstance(resp, str) else json.dumps(resp, ensure_ascii=False)
-            except Exception as e:
-                text = f"回答生成失败: {str(e)}"
-            st.session_state.chat_history.append({"role": "ai", "text": text})
+    # Chat messages
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            st.chat_message("user").write(msg["text"])
+        else:
+            st.chat_message("assistant").write(msg["text"])
+
+    # Input form
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.form(key="tf", clear_on_submit=True):
+        col1, col2 = st.columns([10,1])
+        with col1:
+            q = st.text_input("", placeholder="输入你的问题...", key="ti", label_visibility="collapsed")
+        with col2:
+            submit = st.form_submit_button("发送", use_container_width=True, type="primary")
+
+    # Disclaimer
+    st.caption("LearnKit 可能产生不准确的信息，请以实际教材为准。")
+
+    if submit and q.strip():
+        st.session_state.chat_history.append({"role":"user","text":q})
+        st.session_state.pending_q = q
+        _save_current_session()
         st.rerun()
 
-    # 仅在有历史消息时渲染白色聊天容器，避免空白占位
-    if st.session_state.chat_history:
-        st.markdown('<div class="chat-container" id="chat-container">', unsafe_allow_html=True)
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                st.markdown(f'<div class="user-message"><strong>👤 学生：</strong> {msg["text"]}</div>', unsafe_allow_html=True)
-            else:
-                # 将 AI 的 Markdown 文本转换为 HTML 并整体放入消息气泡内，保证样式一致且支持代码/列表
-                try:
-                    import markdown as _md
-                    html = _md.markdown(msg["text"], extensions=["fenced_code", "codehilite", "tables"]) if isinstance(msg["text"], str) else str(msg["text"])
-                    st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong><div class="ai-content">{html}</div></div>', unsafe_allow_html=True)
-                except Exception:
-                    st.markdown(f'<div class="ai-message"><strong>🤖 AI：</strong> {msg["text"]}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    if "pending_q" in st.session_state:
+        pq = st.session_state.pop("pending_q")
+        with st.spinner(""):
+            try:
+                resp = scheduler.execute_task("tutoring", pq)
+                if isinstance(resp,dict) and resp.get("_ai_error"):
+                    txt = f"调用失败: {resp.get('detail',resp)}"
+                else:
+                    txt = resp.get("answer") if isinstance(resp,dict) and "answer" in resp else (
+                        resp if isinstance(resp,str) else json.dumps(resp,ensure_ascii=False))
+            except Exception as e:
+                txt = f"出错: {e}"
+            st.session_state.chat_history.append({"role":"ai","text":txt})
+            _save_current_session()
+        st.rerun()
 
 
+def render_kb():
 
-def render_kb_page():
-    """课程知识库浏览页面：展示课程章节、知识点、代码示例、练习题、阅读材料"""
-    # ---- 课程选择器（放在页面顶部）----
-    available_courses = list_courses()
-    if not available_courses:
-        st.warning("未发现课程知识库，请在 data/course_kb/ 目录下添加课程数据。")
+    courses = list_courses()
+    if not courses:
+        st.warning("未发现课程知识库。")
         return
 
-    course_options = [(c["id"], f"{c['course_name']} ({c['course_name_en']})") for c in available_courses]
-    default_idx = 0
-    if "current_course_id" in st.session_state and st.session_state["current_course_id"]:
-        for i, c in enumerate(available_courses):
-            if c["id"] == st.session_state["current_course_id"]:
-                default_idx = i
-                break
+    opts = [(c["id"], f"{c['course_name']} ({c['course_name_en']})") for c in courses]
+    di = 0
+    if st.session_state.get("current_course_id"):
+        for i,c in enumerate(courses):
+            if c["id"]==st.session_state["current_course_id"]: di=i; break
 
-    col_tip, col_select = st.columns([3, 2])
-    with col_tip:
-        st.markdown("")
-        st.markdown("")
-        st.markdown("""<div style="font-size:13px;color:#555;font-weight:600;">👇 在下方选择一门课程来浏览对应的知识库</div>""", unsafe_allow_html=True)
-    with col_select:
-        selected_idx = st.selectbox(
-            "选择课程",
-            options=range(len(course_options)),
-            format_func=lambda i: course_options[i][1],
-            index=default_idx,
-            key="course_selector_kb_page",
-            label_visibility="collapsed",
-        )
-        st.session_state["current_course_id"] = course_options[selected_idx][0]
+    selected = st.selectbox("选择课程", range(len(opts)),
+                           format_func=lambda i: opts[i][1], index=di, key="ks")
+    st.session_state["current_course_id"] = opts[selected][0]
+    kb = get_kb()
+    m = kb.manifest
 
-    # 根据当前选中的课程加载知识库
-    kb = get_kb_for_current_course()
-    manifest = kb.manifest
+    st.markdown(f"## {m.get('course_name','')}")
+    st.caption(f"{m.get('target_major','')}  |  {m.get('total_hours','')} 学时")
 
-    st.markdown("""
-        <style>
-            .kb-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 24px;
-                border-radius: 16px;
-                color: white;
-                margin-bottom: 24px;
-            }
-            .kb-header h1 { margin: 0 0 8px 0; font-size: 28px; }
-            .kb-header p { margin: 0; opacity: 0.95; font-size: 15px; }
-            .stat-card {
-                background: white;
-                border-radius: 12px;
-                padding: 16px 20px;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-                border-left: 4px solid #667eea;
-            }
-            .stat-card .num { font-size: 28px; font-weight: bold; color: #667eea; }
-            .stat-card .label { color: #666; font-size: 14px; }
-            .chapter-card {
-                background: white;
-                border-radius: 12px;
-                padding: 16px 20px;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-                cursor: pointer;
-                transition: all 0.2s ease;
-                margin-bottom: 12px;
-                border-left: 4px solid #764ba2;
-            }
-            .chapter-card:hover {
-                transform: translateX(4px);
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                border-left-color: #f5576c;
-            }
-            .kp-box {
-                background: #f8f9ff;
-                border-left: 3px solid #667eea;
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin: 8px 0;
-            }
-            .code-box {
-                background: #1e1e1e;
-                border-radius: 8px;
-                padding: 12px 16px;
-                color: #d4d4d4;
-                font-family: 'Courier New', monospace;
-                font-size: 13px;
-                overflow-x: auto;
-                margin: 8px 0;
-            }
-            .q-box {
-                background: #fff4e6;
-                border-left: 3px solid #f5576c;
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin: 8px 0;
-            }
-            .tag {
-                display: inline-block;
-                padding: 3px 10px;
-                border-radius: 12px;
-                font-size: 12px;
-                margin-right: 6px;
-            }
-            .tag-hard { background: #ffebee; color: #c62828; }
-            .tag-normal { background: #fff3e0; color: #ef6c00; }
-            .tag-easy { background: #e8f5e9; color: #2e7d32; }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 课程头部信息
-    course_name = manifest.get("course_name", "数据结构")
-    course_en = manifest.get("course_name_en", "")
-    target_major = manifest.get("target_major", "")
-    total_hours = manifest.get("total_hours", 0)
-
-    st.markdown(f"""
-        <div class="kb-header">
-            <h1>📚 {course_name} <span style="font-size:16px;opacity:0.85;">{course_en}</span></h1>
-            <p>已完整构建设计并录入系统的高校专业课程知识库 · 作为智能体生成个性化学习资源的基础输入</p>
-            <div style="margin-top:12px;font-size:13px;opacity:0.9;">
-                🏫 目标专业：{target_major} &nbsp;&nbsp; ⏱ 总学时：{total_hours} 课时
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # 统计信息
-    chapters = manifest.get("chapters", [])
-    total_chapters = len(chapters)
-    total_kp = 0
-    total_code = 0
-    total_qs = 0
+    chapters = m.get("chapters",[])
+    tkp=tcd=tqs=0
     for ch in chapters:
-        ch_data = kb.get_chapter(ch.get("id", ""))
-        if ch_data:
-            total_kp += len(ch_data.get("key_points", []))
-            total_code += len(ch_data.get("code_examples", []))
-            total_qs += len(ch_data.get("questions", []))
+        d=kb.get_chapter(ch.get("id",""))
+        if d: tkp+=len(d.get("key_points",[])); tcd+=len(d.get("code_examples",[])); tqs+=len(d.get("questions",[]))
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f'<div class="stat-card"><div class="num">{total_chapters}</div><div class="label">教学章节</div></div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="stat-card"><div class="num">{total_kp}</div><div class="label">核心知识点</div></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown(f'<div class="stat-card"><div class="num">{total_code}</div><div class="label">代码示例</div></div>', unsafe_allow_html=True)
-    with col4:
-        st.markdown(f'<div class="stat-card"><div class="num">{total_qs}</div><div class="label">练习题</div></div>', unsafe_allow_html=True)
+    c1,c2,c3,c4 = st.columns(4)
+    c1.metric("章节", len(chapters))
+    c2.metric("知识点", tkp)
+    c3.metric("代码", tcd)
+    c4.metric("习题", tqs)
 
-    st.markdown("---")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    # 搜索功能
-    col_search, col_tip = st.columns([3, 1])
-    with col_search:
-        search_term = st.text_input("🔎 在知识库中搜索知识点", placeholder="例如：二叉树、时间复杂度、快速排序...")
-    with col_tip:
-        st.markdown('<div style="padding-top:28px;color:#888;font-size:13px;">输入关键词快速定位相关内容</div>', unsafe_allow_html=True)
-
-    if search_term:
-        matches = kb.search_knowledge_point(search_term)
-        if matches:
-            st.markdown(f'<div style="padding:10px;background:#e8f5e9;border-radius:8px;margin:12px 0;">✅ 找到 {len(matches)} 个与「{search_term}」相关的知识点</div>', unsafe_allow_html=True)
-            for m in matches[:15]:
-                ch_title = m.get("chapter_title", "")
-                kp_name = m.get("kp_name", "")
-                difficulty = m.get("difficulty", "")
-                content = m.get("content", "")
-                diff_class = "tag-hard"
-                if "简单" in difficulty or "基础" in difficulty:
-                    diff_class = "tag-easy"
-                elif "重点" in difficulty or "重要" in difficulty:
-                    diff_class = "tag-normal"
-                st.markdown(f"""
-                    <div class="kp-box">
-                        <div style="font-weight:bold;font-size:15px;color:#333;">{kp_name} <span style="font-size:12px;color:#888;font-weight:normal;">— {ch_title}</span> <span class="tag {diff_class}">{difficulty}</span></div>
-                        <div style="margin-top:6px;color:#555;line-height:1.6;font-size:13px;">{content[:600]}{"..." if len(content) > 600 else ""}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+    search = st.text_input("搜索知识点", placeholder="输入关键词检索...", key="kq")
+    if search:
+        hits = kb.search_knowledge_point(search)
+        if hits:
+            st.caption(f"找到 {len(hits)} 条结果")
+            for h in hits[:15]:
+                st.markdown(f"**{h.get('kp_name','')}** — {h.get('chapter_title','')} ({h.get('difficulty','')})")
+                st.caption(str(h.get("content",""))[:500])
+                st.markdown("---")
         else:
-            st.markdown(f'<div style="padding:10px;background:#fff3e0;border-radius:8px;margin:12px 0;">未找到与「{search_term}」直接相关的内容，请尝试其他关键词。</div>', unsafe_allow_html=True)
+            st.info("未找到相关内容。")
         return
 
-    # 章节列表 / 章节详情
-    st.markdown("### 📖 课程章节结构")
-    selected_chapter = st.selectbox(
-        "选择章节查看详细内容",
-        options=[(ch.get("id", ""), ch.get("title", "")) for ch in chapters],
-        format_func=lambda x: f"{x[0]} · {x[1]}"
-    )
+    st.markdown("### 章节详情")
+    ch_sel = st.selectbox("选择章节", [(c.get("id",""),c.get("title","")) for c in chapters],
+                         format_func=lambda x: f"{x[0]}  {x[1]}", key="kc")
+    if ch_sel:
+        ch_id, ch_title = ch_sel
+        cd = kb.get_chapter(ch_id)
+        if not cd: st.info("内容准备中..."); return
 
-    if selected_chapter:
-        ch_id, ch_title = selected_chapter
-        ch_data = kb.get_chapter(ch_id)
-        if not ch_data:
-            st.info("该章节内容正在整理中…")
-            return
+        st.markdown(f"**{ch_id}  {ch_title}**")
+        st.caption(cd.get("summary",""))
 
-        summary = ch_data.get("summary", "")
-        key_points = ch_data.get("key_points", [])
-        code_examples = ch_data.get("code_examples", [])
-        questions = ch_data.get("questions", [])
-        reading_materials = ch_data.get("reading_materials", [])
-
-        # 章节摘要
-        st.markdown(f"""
-            <div class="chapter-card">
-                <div style="font-size:18px;font-weight:bold;color:#333;">{ch_id} · {ch_title}</div>
-                <div style="margin-top:8px;color:#555;line-height:1.7;font-size:14px;">{summary}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # 使用标签页组织内容
-        tab1, tab2, tab3, tab4 = st.tabs([
-            f"📌 核心知识点 ({len(key_points)})",
-            f"💻 代码示例 ({len(code_examples)})",
-            f"📝 练习题 ({len(questions)})",
-            f"📚 拓展阅读 ({len(reading_materials)})"
+        t1,t2,t3,t4 = st.tabs([
+            f"知识点 ({len(cd.get('key_points',[]))})",
+            f"代码 ({len(cd.get('code_examples',[]))})",
+            f"习题 ({len(cd.get('questions',[]))})",
+            f"阅读 ({len(cd.get('reading_materials',[]))})",
         ])
+        with t1:
+            for kp in cd.get("key_points",[]):
+                st.markdown(f"**{kp.get('name','')}** ({kp.get('difficulty','')})")
+                st.markdown(kp.get("content","")); st.markdown("---")
+        with t2:
+            for ex in cd.get("code_examples",[]):
+                st.markdown(f"**{ex.get('title','')}** ({ex.get('language','python')})")
+                if ex.get("description"): st.caption(ex["description"])
+                st.code(ex.get("code",""), language=ex.get("language","python"))
+        with t3:
+            for i,q in enumerate(cd.get("questions",[]),1):
+                qt = q.get("question", q.get("q",""))
+                with st.expander(f"Q{i}. {str(qt)[:100]}"):
+                    st.markdown(f"**题目**\n\n{qt}")
+                    st.markdown(f"**答案**\n\n{q.get('answer',q.get('a',''))}")
+        with t4:
+            for rm in cd.get("reading_materials",[]):
+                st.markdown(f"**{rm.get('title',rm.get('name',''))}** ({rm.get('type','')})")
+                st.caption(rm.get("summary",rm.get("desc","")))
+                if rm.get("link"): st.caption(rm["link"]); st.markdown("---")
 
-        with tab1:
-            if key_points:
-                for kp in key_points:
-                    kp_name = kp.get("name", "未命名知识点")
-                    kp_content = kp.get("content", "")
-                    kp_diff = kp.get("difficulty", "")
-                    diff_class = "tag-normal"
-                    if kp_diff in ["简单", "基础"]:
-                        diff_class = "tag-easy"
-                    elif kp_diff in ["重点", "难点", "核心"]:
-                        diff_class = "tag-hard"
-                    st.markdown(f"""
-                        <div class="kp-box">
-                            <div style="font-weight:bold;color:#333;margin-bottom:6px;">{kp_name} <span class="tag {diff_class}">{kp_diff}</span></div>
-                            <div style="color:#555;line-height:1.75;font-size:14px;">{kp_content}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.info("该章节暂无知识点记录。")
+    with st.expander(f"全部 {len(chapters)} 章总览", expanded=False):
+        for i,c in enumerate(chapters,1):
+            st.markdown(f"**第{i}章  {c.get('title','')}** ({c.get('hours',0)} 学时)")
+            st.caption("、".join(c.get("knowledge_points",[])[:6]))
+            st.markdown("---")
 
-        with tab2:
-            if code_examples:
-                for idx, code in enumerate(code_examples, 1):
-                    c_title = code.get("title", f"示例 {idx}")
-                    c_lang = code.get("language", "python")
-                    c_code = code.get("code", "")
-                    c_desc = code.get("description", "")
-                    st.markdown(f"""
-                        <div style="margin:12px 0;padding:12px 16px;background:#f8f9ff;border-radius:8px;">
-                            <div style="font-weight:bold;color:#333;">💡 {c_title} <span style="font-size:12px;color:#888;font-weight:normal;">({c_lang})</span></div>
-                            {f'<div style="margin:6px 0;color:#666;font-size:13px;">{c_desc}</div>' if c_desc else ''}
-                        </div>
-                    """, unsafe_allow_html=True)
-                    st.code(c_code, language=c_lang)
-            else:
-                st.info("该章节暂无代码示例。")
-
-        with tab3:
-            if questions:
-                for idx, q in enumerate(questions, 1):
-                    q_text = q.get("question", q.get("q", ""))
-                    q_ans = q.get("answer", q.get("a", ""))
-                    q_type = q.get("type", "问答题")
-                    with st.expander(f"Q{idx}. [{q_type}] {q_text[:120]}{'...' if len(str(q_text)) > 120 else ''}", expanded=False):
-                        st.markdown(f"**题目：**\n\n{q_text}")
-                        st.markdown(f"**参考答案：**\n\n{q_ans}")
-            else:
-                st.info("该章节暂无练习题。")
-
-        with tab4:
-            if reading_materials:
-                for m in reading_materials:
-                    m_title = m.get("title", m.get("name", ""))
-                    m_type = m.get("type", "")
-                    m_summary = m.get("summary", m.get("desc", ""))
-                    m_link = m.get("link", "")
-                    st.markdown(f"""
-                        <div class="kp-box" style="background:#f0f4ff;border-left-color:#43e97b;">
-                            <div style="font-weight:bold;color:#333;">📖 {m_title} <span style="font-size:12px;color:#888;font-weight:normal;">{m_type}</span></div>
-                            <div style="margin-top:6px;color:#555;line-height:1.6;font-size:13px;">{m_summary}</div>
-                            {f'<div style="margin-top:6px;"><a href="{m_link}" target="_blank" style="color:#667eea;font-size:13px;">🔗 查看来源</a></div>' if m_link else ''}
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.info("该章节暂无拓展阅读材料。")
-
-    # 章节总览（可折叠章节卡片列表）
-    with st.expander(f"📋 查看全部 {total_chapters} 章快速总览", expanded=False):
-        for idx, ch in enumerate(chapters, 1):
-            ch_id = ch.get("id", "")
-            ch_title = ch.get("title", "")
-            ch_hours = ch.get("hours", 0)
-            ch_kps = ", ".join(ch.get("knowledge_points", [])[:6])
-            st.markdown(f"""
-                <div class="chapter-card">
-                    <div style="font-weight:bold;color:#333;font-size:15px;">第{idx}章 · {ch_title} <span style="font-size:12px;color:#888;font-weight:normal;">({ch_hours} 学时)</span></div>
-                    <div style="margin-top:6px;color:#666;font-size:13px;">核心内容：{ch_kps}</div>
-                </div>
-            """, unsafe_allow_html=True)
-
+# ── main ──
 
 def main():
-    st.set_page_config(page_title="个性化学习智能体", layout="wide", initial_sidebar_state="expanded")
-    
-    # 添加全局样式
-    st.markdown("""
-        <style>
-            * {
-                font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            }
-            .stApp {
-                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                min-height: 100vh;
-            }
-            .stSidebar {
-                background: white;
-                box-shadow: 2px 0 20px rgba(0,0,0,0.05);
-            }
-            .stButton>button {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 10px 24px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-            .stButton>button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            }
-            .stTextInput>div>div>input {
-                border-radius: 10px;
-                padding: 12px 16px;
-                border: 2px solid #e9ecef;
-                transition: all 0.3s ease;
-            }
-            .stTextInput>div>div>input:focus {
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-            .stSelectbox>div>div>select {
-                border-radius: 10px;
-                padding: 12px 16px;
-                border: 2px solid #e9ecef;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    page = sidebar_nav()
-    if page == "课程知识库":
-        render_kb_page()
-    elif page == "画像构建":
-        render_profile_page()
-    elif page == "多模态资源生成":
-        render_resource_page()
-    elif page == "个性化学习路径":
-        render_path_page()
-    elif page == "智能辅导":
-        render_tutor_page()
+    st.set_page_config(page_title="LearnKit", layout="wide", initial_sidebar_state="expanded")
+
+    page = render_sidebar()
+
+    if st.session_state.get("show_settings"):
+        render_settings()
+    else:
+        pages = {
+            "课程知识库": render_kb,
+            "画像构建": render_profile,
+            "多模态资源生成": render_resource,
+            "个性化学习路径": render_path,
+            "智能辅导": render_tutor,
+        }
+        pages.get(page, render_profile)()
+
+    # CSS injected LAST to override Streamlit defaults
+    st.markdown(CSS, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
